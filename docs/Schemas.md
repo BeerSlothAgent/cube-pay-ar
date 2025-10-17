@@ -1,464 +1,520 @@
 # Database Schemas Documentation
 
-## 🗄️ **Database Schema Overview**
+## 📋 Overview
 
-AgentSphere uses PostgreSQL via Supabase with a comprehensive schema designed for AR/QR agent deployment, location services, and blockchain integration.
+This document contains all database schemas, table definitions, and data models used in the AR Viewer project. The primary database is PostgreSQL hosted on Supabase.
 
----
+## 🗄️ Database Tables
 
-## 📋 **Primary Tables**
+### 1. AR QR Codes Table
 
-### **1. deployed_objects** _(Main Table)_
-
-The core table storing all deployed AI agents and AR objects with their properties and metadata.
-
-#### **Table Structure**
+**Purpose**: Manages floating QR codes in the AR environment as 3D positioned objects
 
 ```sql
-CREATE TABLE deployed_objects (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id text NOT NULL,
-  object_type text NOT NULL,
-  latitude double precision NOT NULL,
-  longitude double precision NOT NULL,
-  altitude double precision,
-  trailing_agent boolean DEFAULT false,
-  interaction_range numeric(5,2) DEFAULT 15.0,
-  ar_notifications boolean DEFAULT true,
-  location_type text,
-  currency_type text,
-  network text,
-  created_at timestamptz DEFAULT now()
+CREATE TABLE IF NOT EXISTS ar_qr_codes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+
+  -- Transaction and payment info
+  transaction_id TEXT NOT NULL UNIQUE,
+  qr_code_data TEXT NOT NULL, -- EIP-681 format for blockchain payments
+
+  -- 3D positioning in AR space
+  position_x REAL DEFAULT 0,
+  position_y REAL DEFAULT 0,
+  position_z REAL DEFAULT -2,
+  rotation_x REAL DEFAULT 0,
+  rotation_y REAL DEFAULT 0,
+  rotation_z REAL DEFAULT 0,
+  scale REAL DEFAULT 1.5,
+
+  -- Geographic location (optional)
+  latitude REAL,
+  longitude REAL,
+  altitude REAL,
+
+  -- QR code lifecycle management
+  status TEXT DEFAULT 'generated' CHECK (status IN ('generated', 'active', 'scanned', 'expired', 'paid')),
+
+  -- Agent relationship
+  agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+
+  -- Payment details (multi-blockchain support)
+  amount BIGINT, -- Token amount in smallest units (wei, lamports, etc.)
+  recipient_address TEXT,
+  contract_address TEXT,
+  chain_id TEXT,
+
+  -- Timestamps
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  expiration_time TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '5 minutes'),
+  scanned_at TIMESTAMP WITH TIME ZONE,
+  paid_at TIMESTAMP WITH TIME ZONE,
+
+  -- Extensible metadata
+  metadata JSONB DEFAULT '{}',
+
+  -- Constraints
+  CONSTRAINT valid_expiration CHECK (expiration_time > created_at)
 );
 ```
 
-#### **Column Descriptions**
+#### Status Lifecycle
 
-| Column              | Type             | Description                       | Constraints                    |
-| ------------------- | ---------------- | --------------------------------- | ------------------------------ |
-| `id`                | uuid             | Primary key, auto-generated       | PRIMARY KEY, NOT NULL          |
-| `user_id`           | text             | Wallet address or user identifier | NOT NULL                       |
-| `object_type`       | text             | Type of deployed agent/object     | NOT NULL, CHECK constraint     |
-| `latitude`          | double precision | GPS latitude coordinate           | NOT NULL                       |
-| `longitude`         | double precision | GPS longitude coordinate          | NOT NULL                       |
-| `altitude`          | double precision | Elevation in meters               | NULLABLE                       |
-| `trailing_agent`    | boolean          | Whether agent follows user        | DEFAULT false                  |
-| `interaction_range` | numeric(5,2)     | Interaction range in meters       | DEFAULT 15.0, CHECK (1.0-25.0) |
-| `ar_notifications`  | boolean          | AR notification enabled           | DEFAULT true                   |
-| `location_type`     | text             | Environment category              | CHECK constraint               |
-| `currency_type`     | text             | Payment currency                  | CHECK constraint               |
-| `network`           | text             | Blockchain network                | CHECK constraint               |
-| `created_at`        | timestamptz      | Creation timestamp                | DEFAULT now()                  |
-
-#### **Constraints & Validations**
-
-##### **Object Type Constraint**
-
-```sql
-ALTER TABLE deployed_objects
-ADD CONSTRAINT valid_object_type
-CHECK (object_type = ANY (ARRAY[
-  'ai_agent'::text,
-  'study_buddy'::text,
-  'tutor'::text,
-  'landmark'::text,
-  'building'::text,
-  'Intelligent Assistant'::text,
-  'Content Creator'::text,
-  'Local Services'::text,
-  'Tutor/Teacher'::text,
-  '3D World Modelling'::text,
-  'Game Agent'::text,
-  'Taxi driver'::text,
-  'Travel Influencer'::text
-]));
+```
+generated → active → scanned → paid
+     ↓         ↓        ↓        ↓
+  expired   expired  expired  completed
 ```
 
-##### **Location Type Constraint**
+#### Field Descriptions
+
+- **position_x/y/z**: 3D coordinates in AR space (z-negative = in front of camera)
+- **scale**: Size multiplier for QR code display (default 1.5)
+- **qr_code_data**: EIP-681 formatted payment URI
+- **amount**: Token amount in smallest units (supports all decimal precisions)
+- **metadata**: Extensible JSON field for future features
+
+### 2. Agents Table
+
+**Purpose**: Stores AR agent data and metadata
 
 ```sql
-ALTER TABLE deployed_objects
-ADD CONSTRAINT valid_location_type
-CHECK (location_type = ANY (ARRAY[
-  'Home'::character varying,
-  'Street'::character varying,
-  'Countryside'::character varying,
-  'Classroom'::character varying,
-  'Office'::character varying,
-  'Car'::character varying
-]));
+CREATE TABLE IF NOT EXISTS agents (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+
+  -- Basic agent info
+  name TEXT NOT NULL,
+  description TEXT,
+  agent_type TEXT DEFAULT 'Intelligent Assistant',
+
+  -- 3D model and appearance
+  model_url TEXT,
+  texture_url TEXT,
+  animation_set JSONB DEFAULT '{}',
+
+  -- Position and behavior
+  position_x REAL DEFAULT 0,
+  position_y REAL DEFAULT 0,
+  position_z REAL DEFAULT 0,
+  rotation_y REAL DEFAULT 0,
+  scale REAL DEFAULT 1,
+
+  -- Agent capabilities
+  capabilities JSONB DEFAULT '[]',
+  personality_traits JSONB DEFAULT '{}',
+
+  -- Payment settings
+  wallet_address TEXT,
+  payment_enabled BOOLEAN DEFAULT true,
+  service_fee_usd DECIMAL(10,2) DEFAULT 1.00,
+
+  -- Metadata
+  metadata JSONB DEFAULT '{}',
+
+  -- Timestamps
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-##### **Currency Type Constraint**
+### 3. User Profiles Table
+
+**Purpose**: User account and preference management
 
 ```sql
-ALTER TABLE deployed_objects
-ADD CONSTRAINT valid_currency_type
-CHECK (currency_type = ANY (ARRAY[
-  'USDFC'::text,
-  'AURAS'::text,
-  'BDAG'::text
-]));
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+
+  -- Profile information
+  username TEXT UNIQUE,
+  display_name TEXT,
+  avatar_url TEXT,
+
+  -- Preferences
+  preferences JSONB DEFAULT '{}',
+
+  -- Wallet connections
+  wallet_addresses JSONB DEFAULT '{}', -- {blockchain: address}
+
+  -- Usage statistics
+  total_interactions INTEGER DEFAULT 0,
+  total_payments DECIMAL(10,2) DEFAULT 0,
+
+  -- Timestamps
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-##### **Network Constraint**
+### 4. Payment Transactions Table
+
+**Purpose**: Transaction history and audit trail
 
 ```sql
-ALTER TABLE deployed_objects
-ADD CONSTRAINT valid_network
-CHECK (network = ANY (ARRAY[
-  'avalanche-fuji'::text,
-  'avalanche-mainnet'::text,
-  'ethereum'::text,
-  'polygon'::text,
-  'algorand-testnet'::text,
-  'algorand-mainnet'::text,
-  'near-testnet'::text,
-  'near-mainnet'::text,
-  'blockdag-testnet'::text
-]));
+CREATE TABLE IF NOT EXISTS payment_transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+
+  -- Transaction identification
+  transaction_hash TEXT UNIQUE, -- Blockchain transaction hash
+  transaction_id TEXT NOT NULL, -- Internal transaction ID
+
+  -- Parties involved
+  user_id UUID REFERENCES user_profiles(id),
+  agent_id UUID REFERENCES agents(id),
+  qr_code_id UUID REFERENCES ar_qr_codes(id),
+
+  -- Payment details
+  amount BIGINT NOT NULL, -- Amount in smallest token units
+  token_symbol TEXT NOT NULL, -- USBDG+, SOL, USDT, etc.
+  token_contract TEXT, -- Contract address for tokens
+
+  -- Blockchain information
+  blockchain_network TEXT NOT NULL, -- blockdag, solana, morph
+  chain_id TEXT NOT NULL,
+  from_address TEXT NOT NULL,
+  to_address TEXT NOT NULL,
+
+  -- Transaction status
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'failed', 'cancelled')),
+
+  -- Blockchain confirmation
+  block_number BIGINT,
+  confirmation_count INTEGER DEFAULT 0,
+  gas_used BIGINT,
+  gas_price BIGINT,
+
+  -- Timestamps
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  confirmed_at TIMESTAMP WITH TIME ZONE,
+
+  -- Additional data
+  metadata JSONB DEFAULT '{}'
+);
 ```
 
-##### **Interaction Range Constraint**
+## 🔐 Security Policies (RLS)
+
+### AR QR Codes Policies
 
 ```sql
-ALTER TABLE deployed_objects
-ADD CONSTRAINT valid_interaction_range
-CHECK ((interaction_range >= 1.0) AND (interaction_range <= 25.0));
+-- Enable Row Level Security
+ALTER TABLE ar_qr_codes ENABLE ROW LEVEL SECURITY;
+
+-- Allow reading active QR codes for AR discovery
+CREATE POLICY "Allow read access to active QR codes" ON ar_qr_codes
+  FOR SELECT USING (status IN ('active', 'generated'));
+
+-- Allow creating QR codes (authenticated users)
+CREATE POLICY "Allow creating QR codes" ON ar_qr_codes
+  FOR INSERT WITH CHECK (true);
+
+-- Allow updating QR codes for status changes
+CREATE POLICY "Allow updating QR codes" ON ar_qr_codes
+  FOR UPDATE USING (true);
 ```
 
-#### **Indexes**
+### User Profiles Policies
 
 ```sql
--- Primary key index (automatic)
-CREATE UNIQUE INDEX deployed_objects_pkey ON deployed_objects (id);
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
--- Location-based queries
-CREATE INDEX idx_deployed_objects_location ON deployed_objects (latitude, longitude);
+-- Users can read their own profile
+CREATE POLICY "Users can read own profile" ON user_profiles
+  FOR SELECT USING (auth.uid() = id);
 
--- User-based queries
-CREATE INDEX idx_deployed_objects_user ON deployed_objects (user_id);
-
--- Trailing agents
-CREATE INDEX idx_deployed_objects_trailing_agent
-ON deployed_objects (trailing_agent)
-WHERE (trailing_agent = true);
-
--- Interaction range
-CREATE INDEX idx_deployed_objects_interaction_range
-ON deployed_objects (interaction_range);
-
--- Created timestamp
-CREATE INDEX idx_deployed_objects_created_at ON deployed_objects (created_at);
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (auth.uid() = id);
 ```
 
----
+## 📊 Database Indexes
 
-## 🔐 **Row Level Security (RLS)**
-
-### **Security Policies**
-
-#### **1. Read Policy - Public Access**
+### Performance Indexes
 
 ```sql
-CREATE POLICY "Anyone can read deployed objects"
-ON deployed_objects
-FOR SELECT
-TO public
-USING (true);
+-- AR QR Codes indexes
+CREATE INDEX IF NOT EXISTS idx_ar_qr_codes_status ON ar_qr_codes(status);
+CREATE INDEX IF NOT EXISTS idx_ar_qr_codes_agent_id ON ar_qr_codes(agent_id);
+CREATE INDEX IF NOT EXISTS idx_ar_qr_codes_expiration ON ar_qr_codes(expiration_time);
+CREATE INDEX IF NOT EXISTS idx_ar_qr_codes_location ON ar_qr_codes(latitude, longitude)
+  WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_ar_qr_codes_transaction ON ar_qr_codes(transaction_id);
+
+-- Agents indexes
+CREATE INDEX IF NOT EXISTS idx_agents_type ON agents(agent_type);
+CREATE INDEX IF NOT EXISTS idx_agents_payment_enabled ON agents(payment_enabled)
+  WHERE payment_enabled = true;
+
+-- Payment transactions indexes
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_status ON payment_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_user ON payment_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_agent ON payment_transactions(agent_id);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_hash ON payment_transactions(transaction_hash);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_network ON payment_transactions(blockchain_network);
 ```
 
-#### **2. Insert Policy - Public Deployment**
+## 🔄 Database Functions
+
+### Auto-Update Timestamp Trigger
 
 ```sql
-CREATE POLICY "Users can insert their own objects"
-ON deployed_objects
-FOR INSERT
-TO public
-WITH CHECK (true);
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Apply to all tables with updated_at
+CREATE TRIGGER update_ar_qr_codes_updated_at BEFORE UPDATE
+    ON ar_qr_codes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_agents_updated_at BEFORE UPDATE
+    ON agents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE
+    ON user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
-#### **3. Update Policy - Owner Only**
+### Cleanup Expired QR Codes
 
 ```sql
-CREATE POLICY "Users can update their own objects"
-ON deployed_objects
-FOR UPDATE
-TO public
-USING (user_id = current_setting('request.jwt.claims', true)::json->>'sub')
-WITH CHECK (user_id = current_setting('request.jwt.claims', true)::json->>'sub');
+CREATE OR REPLACE FUNCTION cleanup_expired_qr_codes()
+RETURNS INTEGER AS $$
+DECLARE
+    affected_count INTEGER;
+BEGIN
+    UPDATE ar_qr_codes
+    SET status = 'expired', updated_at = NOW()
+    WHERE status IN ('generated', 'active')
+    AND expiration_time < NOW();
+
+    GET DIAGNOSTICS affected_count = ROW_COUNT;
+    RETURN affected_count;
+END;
+$$ LANGUAGE 'plpgsql';
 ```
 
-#### **4. Delete Policy - Owner Only**
+### Payment Statistics Function
 
 ```sql
-CREATE POLICY "Users can delete their own objects"
-ON deployed_objects
-FOR DELETE
-TO public
-USING (user_id = current_setting('request.jwt.claims', true)::json->>'sub');
+CREATE OR REPLACE FUNCTION get_payment_stats(user_uuid UUID)
+RETURNS TABLE(
+    total_payments BIGINT,
+    total_amount DECIMAL,
+    favorite_agent UUID,
+    networks_used TEXT[]
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COUNT(*)::BIGINT as total_payments,
+        SUM(amount)::DECIMAL as total_amount,
+        mode() WITHIN GROUP (ORDER BY agent_id) as favorite_agent,
+        array_agg(DISTINCT blockchain_network) as networks_used
+    FROM payment_transactions
+    WHERE user_id = user_uuid AND status = 'confirmed';
+END;
+$$ LANGUAGE 'plpgsql';
 ```
 
----
+## 🎯 Data Models (TypeScript)
 
-## 📊 **TypeScript Interfaces**
-
-### **DeployedObject Interface**
+### AR QR Code Model
 
 ```typescript
-export interface DeployedObject {
+interface ARQRCode {
   id: string;
-  user_id: string;
-  object_type: ObjectType;
-  latitude: number;
-  longitude: number;
+  transaction_id: string;
+  qr_code_data: string;
+
+  // 3D Position
+  position_x: number;
+  position_y: number;
+  position_z: number;
+  rotation_x: number;
+  rotation_y: number;
+  rotation_z: number;
+  scale: number;
+
+  // Geographic Location
+  latitude?: number;
+  longitude?: number;
   altitude?: number;
-  trailing_agent?: boolean;
-  interaction_range?: number;
-  ar_notifications?: boolean;
-  location_type?: LocationType;
-  currency_type?: CurrencyType;
-  network?: NetworkType;
+
+  // Status & Lifecycle
+  status: "generated" | "active" | "scanned" | "expired" | "paid";
+
+  // Relationships
+  agent_id: string;
+
+  // Payment Details
+  amount: bigint;
+  recipient_address: string;
+  contract_address?: string;
+  chain_id: string;
+
+  // Timestamps
   created_at: string;
+  updated_at: string;
+  expiration_time: string;
+  scanned_at?: string;
+  paid_at?: string;
+
+  // Metadata
+  metadata: Record<string, any>;
 }
 ```
 
-### **Enum Types**
+### Agent Model
 
 ```typescript
-export type ObjectType =
-  | "ai_agent"
-  | "study_buddy"
-  | "tutor"
-  | "landmark"
-  | "building"
-  | "Intelligent Assistant"
-  | "Content Creator"
-  | "Local Services"
-  | "Tutor/Teacher"
-  | "3D World Modelling"
-  | "Game Agent"
-  | "Taxi driver"
-  | "Travel Influencer";
+interface Agent {
+  id: string;
+  name: string;
+  description?: string;
+  agent_type: string;
 
-export type LocationType =
-  | "Home"
-  | "Street"
-  | "Countryside"
-  | "Classroom"
-  | "Office"
-  | "Car";
+  // 3D Model
+  model_url?: string;
+  texture_url?: string;
+  animation_set: Record<string, any>;
 
-export type CurrencyType = "USDFC" | "AURAS" | "BDAG";
+  // Position
+  position_x: number;
+  position_y: number;
+  position_z: number;
+  rotation_y: number;
+  scale: number;
 
-export type NetworkType =
-  | "avalanche-fuji"
-  | "avalanche-mainnet"
-  | "ethereum"
-  | "polygon"
-  | "algorand-testnet"
-  | "algorand-mainnet"
-  | "near-testnet"
-  | "near-mainnet"
-  | "blockdag-testnet";
+  // Capabilities
+  capabilities: string[];
+  personality_traits: Record<string, any>;
+
+  // Payment
+  wallet_address?: string;
+  payment_enabled: boolean;
+  service_fee_usd: number;
+
+  // Metadata
+  metadata: Record<string, any>;
+
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+}
 ```
 
-### **Database Operation Interfaces**
+### Payment Transaction Model
 
 ```typescript
-export interface DatabaseResponse<T> {
-  data: T | null;
-  error: string | null;
-  success: boolean;
+interface PaymentTransaction {
+  id: string;
+  transaction_hash?: string;
+  transaction_id: string;
+
+  // Parties
+  user_id?: string;
+  agent_id: string;
+  qr_code_id: string;
+
+  // Payment Details
+  amount: bigint;
+  token_symbol: string;
+  token_contract?: string;
+
+  // Blockchain
+  blockchain_network: "blockdag" | "solana" | "morph";
+  chain_id: string;
+  from_address: string;
+  to_address: string;
+
+  // Status
+  status: "pending" | "confirmed" | "failed" | "cancelled";
+
+  // Confirmation
+  block_number?: bigint;
+  confirmation_count: number;
+  gas_used?: bigint;
+  gas_price?: bigint;
+
+  // Timestamps
+  created_at: string;
+  confirmed_at?: string;
+
+  // Metadata
+  metadata: Record<string, any>;
 }
-
-export interface LocationBounds {
-  minLat: number;
-  maxLat: number;
-  minLng: number;
-  maxLng: number;
-}
-
-export interface AgentDeploymentRequest {
-  user_id: string;
-  object_type: ObjectType;
-  latitude: number;
-  longitude: number;
-  altitude?: number;
-  trailing_agent?: boolean;
-  interaction_range?: number;
-  ar_notifications?: boolean;
-  location_type?: LocationType;
-  currency_type?: CurrencyType;
-  network?: NetworkType;
-}
 ```
 
----
+## 🔍 Common Queries
 
-## 📈 **Migration History**
-
-### **Migration Files (Chronological Order)**
-
-1. **20250623121541_gentle_paper.sql** - Initial table creation
-2. **20250625112258_empty_cave.sql** - Basic enhancements
-3. **20250626154804_weathered_palace.sql** - Additional fields
-4. **20250626172018_mellow_mountain.sql** - Constraint updates
-5. **20250705183547_floating_shadow.sql** - Security policies
-6. **20250706172806_lively_summit.sql** - Performance indexes
-7. **20250706174146_little_wood.sql** - Object type expansions
-8. **20250706181142_frosty_oasis.sql** - Location type additions
-9. **20250706210244_tiny_bar.sql** - Currency integrations
-10. **20250710103810_empty_summit.sql** - Network additions
-11. **20250710104102_curly_valley.sql** - Validation improvements
-12. **20250714100809_foggy_shore.sql** - Trailing agent features
-
-### **Latest Migration Details (20250714100809_foggy_shore.sql)**
+### Active QR Codes by Agent
 
 ```sql
--- Add trailing agent and interaction fields
-ALTER TABLE deployed_objects
-ADD COLUMN IF NOT EXISTS trailing_agent boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS interaction_range numeric(5,2) DEFAULT 15.0,
-ADD COLUMN IF NOT EXISTS ar_notifications boolean DEFAULT true;
-
--- Updated object types to include 'Taxi driver', 'Travel Influencer'
--- Updated location types to include 'Car'
--- Updated currency types to include 'BDAG'
--- Updated networks to include 'blockdag-testnet'
+SELECT qr.*, a.name as agent_name
+FROM ar_qr_codes qr
+JOIN agents a ON qr.agent_id = a.id
+WHERE qr.status = 'active'
+  AND qr.expiration_time > NOW()
+ORDER BY qr.created_at DESC;
 ```
 
----
-
-## 🔄 **Future Schema Enhancements**
-
-### **Planned Tables**
-
-#### **1. users** _(Authentication)_
+### Payment History for User
 
 ```sql
-CREATE TABLE users (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text UNIQUE NOT NULL,
-  wallet_address text UNIQUE,
-  display_name text,
-  avatar_url text,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
+SELECT pt.*, a.name as agent_name, qr.qr_code_data
+FROM payment_transactions pt
+JOIN agents a ON pt.agent_id = a.id
+JOIN ar_qr_codes qr ON pt.qr_code_id = qr.id
+WHERE pt.user_id = $1
+ORDER BY pt.created_at DESC;
 ```
 
-#### **2. agent_interactions** _(Analytics)_
-
-```sql
-CREATE TABLE agent_interactions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  agent_id uuid REFERENCES deployed_objects(id),
-  user_id text NOT NULL,
-  interaction_type text NOT NULL,
-  interaction_data jsonb,
-  location_lat double precision,
-  location_lng double precision,
-  created_at timestamptz DEFAULT now()
-);
-```
-
-#### **3. agent_metadata** _(Extended Properties)_
-
-```sql
-CREATE TABLE agent_metadata (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  agent_id uuid REFERENCES deployed_objects(id),
-  name text,
-  description text,
-  avatar_url text,
-  behavior_config jsonb,
-  custom_properties jsonb,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-```
-
-#### **4. waitlist** _(Marketing)_
-
-```sql
-CREATE TABLE waitlist (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text UNIQUE NOT NULL,
-  referral_code text UNIQUE,
-  referred_by text,
-  position integer,
-  status text DEFAULT 'pending',
-  metadata jsonb,
-  created_at timestamptz DEFAULT now()
-);
-```
-
----
-
-## 🔍 **Query Patterns**
-
-### **Common Queries**
-
-#### **1. Find Nearby Agents**
-
-```sql
-SELECT * FROM deployed_objects
-WHERE latitude BETWEEN $1 AND $2
-AND longitude BETWEEN $3 AND $4
-AND interaction_range >= ST_Distance(
-  ST_Point(longitude, latitude)::geography,
-  ST_Point($5, $6)::geography
-);
-```
-
-#### **2. Get User's Agents**
-
-```sql
-SELECT * FROM deployed_objects
-WHERE user_id = $1
-ORDER BY created_at DESC;
-```
-
-#### **3. Get Trailing Agents**
-
-```sql
-SELECT * FROM deployed_objects
-WHERE trailing_agent = true
-AND user_id = $1;
-```
-
-#### **4. Agent Statistics**
+### Agent Performance Statistics
 
 ```sql
 SELECT
-  object_type,
-  COUNT(*) as count,
-  AVG(interaction_range) as avg_range
-FROM deployed_objects
-GROUP BY object_type
-ORDER BY count DESC;
+  a.name,
+  COUNT(pt.id) as total_transactions,
+  SUM(pt.amount) as total_earnings,
+  AVG(pt.amount) as avg_transaction,
+  COUNT(DISTINCT pt.user_id) as unique_users
+FROM agents a
+LEFT JOIN payment_transactions pt ON a.id = pt.agent_id
+  AND pt.status = 'confirmed'
+GROUP BY a.id, a.name
+ORDER BY total_earnings DESC NULLS LAST;
+```
+
+## 📋 Migration Scripts
+
+### Initial Schema Setup
+
+```sql
+-- Run this to set up the complete database schema
+\i sql/ar_qr_codes_schema.sql
+\i sql/agents_schema.sql
+\i sql/user_profiles_schema.sql
+\i sql/payment_transactions_schema.sql
+```
+
+### Version 1.4.0 Migration (Future)
+
+```sql
+-- Add new fields for enhanced features
+ALTER TABLE ar_qr_codes ADD COLUMN IF NOT EXISTS
+  animation_type TEXT DEFAULT 'pulse';
+
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS
+  ai_model_version TEXT DEFAULT 'v1.0';
 ```
 
 ---
 
-## 📋 **Data Validation Rules**
-
-### **Business Rules**
-
-1. **Interaction Range:** Must be between 1.0 and 25.0 meters
-2. **Location Coordinates:** Must be valid GPS coordinates
-3. **Object Types:** Must match predefined list
-4. **User Ownership:** Users can only modify their own agents
-5. **Trailing Agents:** Cannot exceed 5 per user (future rule)
-
-### **Data Integrity**
-
-- All coordinates must be within valid GPS ranges
-- Currency types must match supported blockchain tokens
-- Network types must correspond to active blockchain networks
-- Agent metadata must be consistent across related tables
-
----
-
-_This schema documentation will be updated as new features are implemented and database structure evolves._
+**Schema Version**: 1.3.0  
+**Last Updated**: July 30, 2025  
+**Database**: PostgreSQL (Supabase)  
+**Status**: ✅ Production Ready
