@@ -1,682 +1,698 @@
 # API Documentation
 
-## 📡 Overview
+## 🌐 **AgentSphere API Reference**
 
-This document provides comprehensive API documentation for the AR Viewer project, covering all endpoints, services, and functions across the frontend application.
-
-## 🛠️ Service APIs
-
-### 1. QR Code Service (`src/services/qrCodeService.js`)
-
-**Purpose**: Handles QR code generation and management for multi-blockchain payments
-
-#### Core Functions
-
-##### `generateARQRCode(amount, recipient, blockchain, agentName)`
-
-```javascript
-/**
- * Generates QR code for AR payments with blockchain-specific formatting
- * @param {number} amount - Payment amount in USD
- * @param {string} recipient - Wallet address to receive payment
- * @param {string} blockchain - Target blockchain ('blockdag', 'solana', 'morph')
- * @param {string} agentName - Agent name for transaction reference
- * @returns {Promise<Object>} QR code data and transaction info
- */
-```
-
-**Request Format**:
-
-```javascript
-const qrData = await generateARQRCode(
-  1.0,
-  "0x1234...",
-  "morph",
-  "AI Assistant"
-);
-```
-
-**Response Format**:
-
-```javascript
-{
-  qrCodeData: "ethereum:0x9E12AD42c4E4d2acFBADE01a96446e48e6764B98@2810/transfer?address=0x1234...&uint256=1000000000000000000",
-  transactionId: "tx_1738174800000_ai_assistant",
-  blockchain: "morph",
-  amount: 1000000000000000000,
-  recipient: "0x1234...",
-  metadata: {
-    agentName: "AI Assistant",
-    timestamp: 1738174800000,
-    chainId: "2810"
-  }
-}
-```
-
-##### `createQRPosition(index, total)`
-
-```javascript
-/**
- * Calculates 3D positioning for AR QR codes
- * @param {number} index - QR code index in array
- * @param {number} total - Total number of QR codes
- * @returns {Object} 3D position coordinates
- */
-```
-
-**Response**:
-
-```javascript
-{
-  x: 2.5,      // X coordinate in AR space
-  y: 0,        // Y coordinate (always 0 for horizontal)
-  z: -2        // Z coordinate (negative = in front)
-}
-```
+Comprehensive documentation for all API endpoints, functions, and integrations in the AgentSphere platform.
 
 ---
 
-### 2. Morph Payment Service (`src/services/morphPaymentService.js`)
+## 🔗 **Base Configuration**
 
-**Purpose**: Handles Morph Holesky EVM blockchain payments via MetaMask
-
-#### Core Functions
-
-##### `getConnectedWalletAddress()`
-
-```javascript
-/**
- * Retrieves connected MetaMask wallet address asynchronously
- * @returns {Promise<string|null>} Connected wallet address or null
- * @throws {Error} If MetaMask not available or not connected
- */
-```
-
-**Usage**:
-
-```javascript
-try {
-  const address = await getConnectedWalletAddress();
-  console.log("Connected wallet:", address);
-} catch (error) {
-  console.error("Wallet not connected:", error.message);
-}
-```
-
-##### `generateMorphAgentPayment(agentName, amount)`
-
-```javascript
-/**
- * Generates Morph payment QR with dynamic wallet detection
- * @param {string} agentName - Name of the AI agent
- * @param {number} amount - Payment amount in USD
- * @returns {Promise<Object>} Complete payment data with QR codes
- */
-```
-
-**Request**:
-
-```javascript
-const payment = await generateMorphAgentPayment("AI Assistant", 1.0);
-```
-
-**Response**:
-
-```javascript
-{
-  qrCodeData: "ethereum:0x9E12AD42c4E4d2acFBADE01a96446e48e6764B98@2810/transfer?address=0x1234...&uint256=1000000000000000000",
-  transactionId: "morph_1738174800000_ai_assistant",
-  blockchain: "morph",
-  amount: 1000000000000000000,
-  recipient: "0x1234...", // Dynamic wallet address
-  rawAmount: 1.0,
-  agentName: "AI Assistant",
-  metadata: {
-    chainId: "2810",
-    contractAddress: "0x9E12AD42c4E4d2acFBADE01a96446e48e6764B98",
-    tokenSymbol: "USDT",
-    decimals: 18
-  }
-}
-```
-
-##### `generateMorphQRFormats(recipient, amount, agentName)`
-
-```javascript
-/**
- * Generates multiple QR formats for compatibility testing
- * @param {string} recipient - Recipient wallet address
- * @param {number} amount - Amount in USD
- * @param {string} agentName - Agent name
- * @returns {Object} Multiple QR format variations
- */
-```
-
-**Response**:
-
-```javascript
-{
-  eip681: "ethereum:0x9E12AD42c4E4d2acFBADE01a96446e48e6764B98@2810/transfer?address=0x1234...&uint256=1000000000000000000",
-  walletConnect: "ethereum:0x1234...@2810?value=1000000000000000000",
-  metamask: "https://metamask.app.link/send/0x1234...@2810?value=1000000000000000000"
-}
-```
-
----
-
-### 3. Solana Payment Service (`src/services/solanaPaymentService.js`)
-
-**Purpose**: Handles Solana blockchain payments via Phantom wallet
-
-#### Core Functions
-
-##### `generateSolanaAgentPayment(agentName, amount)`
-
-```javascript
-/**
- * Generates Solana Pay QR code for agent payments
- * @param {string} agentName - Name of the AI agent
- * @param {number} amount - Payment amount in USD
- * @returns {Object} Solana payment data
- */
-```
-
-**Response**:
-
-```javascript
-{
-  qrCodeData: "solana:9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM?amount=0.003&label=Payment%20to%20AI%20Assistant",
-  transactionId: "solana_1738174800000_ai_assistant",
-  blockchain: "solana",
-  amount: 3000000, // Amount in lamports
-  recipient: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
-  rawAmount: 1.0
-}
-```
-
----
-
-### 4. RTK Location Service (`src/services/rtkLocation.js`)
-
-**Purpose**: Provides location and authentication services for AR positioning
-
-#### Core Functions
-
-##### `getLocation()`
-
-```javascript
-/**
- * Retrieves current GPS location
- * @returns {Promise<Object>} Location coordinates
- */
-```
-
-**Response**:
-
-```javascript
-{
-  latitude: 37.7749,
-  longitude: -122.4194,
-  accuracy: 10,
-  timestamp: 1738174800000
-}
-```
-
-##### `authenticateUser(credentials)`
-
-```javascript
-/**
- * Authenticates user with provided credentials
- * @param {Object} credentials - User authentication data
- * @returns {Promise<Object>} Authentication result
- */
-```
-
----
-
-## 🔗 Database Service API (`src/hooks/useDatabase.js`)
-
-**Purpose**: Custom React hook for Supabase database operations
-
-### Hook Usage
-
-#### `useDatabase()`
-
-```javascript
-/**
- * React hook for database operations
- * @returns {Object} Database operation functions
- */
-const {
-  insertARQRCode,
-  getActiveQRCodes,
-  updateQRCodeStatus,
-  insertPaymentTransaction,
-} = useDatabase();
-```
-
-### Database Functions
-
-##### `insertARQRCode(qrData)`
-
-```javascript
-/**
- * Inserts new AR QR code into database
- * @param {Object} qrData - QR code data object
- * @returns {Promise<Object>} Database insert result
- */
-```
-
-**Input Format**:
-
-```javascript
-const qrData = {
-  transaction_id: "morph_1738174800000_ai_assistant",
-  qr_code_data: "ethereum:0x9E12...",
-  position_x: 0,
-  position_y: 0,
-  position_z: -2,
-  amount: 1000000000000000000,
-  recipient_address: "0x1234...",
-  contract_address: "0x9E12AD42c4E4d2acFBADE01a96446e48e6764B98",
-  chain_id: "2810",
-  agent_id: "agent-uuid",
-  status: "active",
-};
-```
-
-##### `getActiveQRCodes()`
-
-```javascript
-/**
- * Retrieves all active QR codes from database
- * @returns {Promise<Array>} Array of active QR codes
- */
-```
-
-##### `updateQRCodeStatus(qrId, status)`
-
-```javascript
-/**
- * Updates QR code status in database
- * @param {string} qrId - QR code UUID
- * @param {string} status - New status ('scanned', 'paid', 'expired')
- * @returns {Promise<Object>} Update result
- */
-```
-
-##### `insertPaymentTransaction(transactionData)`
-
-```javascript
-/**
- * Records payment transaction in database
- * @param {Object} transactionData - Transaction details
- * @returns {Promise<Object>} Insert result
- */
-```
-
----
-
-## 🌐 Blockchain Configuration APIs
-
-### 1. Morph Holesky Chain (`src/config/morph-holesky-chain.js`)
-
-#### Network Configuration
-
-##### `MorphHoleskyTestnet`
-
-```javascript
-/**
- * Morph Holesky testnet configuration object
- */
-const MorphHoleskyTestnet = {
-  chainId: "0xAFA", // 2810 in hex
-  chainName: "Morph Holesky Testnet",
-  nativeCurrency: {
-    name: "Ether",
-    symbol: "ETH",
-    decimals: 18,
-  },
-  rpcUrls: ["https://rpc-quicknode-holesky.morphl2.io"],
-  blockExplorerUrls: ["https://explorer-holesky.morphl2.io"],
-};
-```
-
-##### `MorphUSDTToken`
-
-```javascript
-/**
- * USDT token configuration on Morph Holesky
- */
-const MorphUSDTToken = {
-  address: "0x9E12AD42c4E4d2acFBADE01a96446e48e6764B98",
-  symbol: "USDT",
-  decimals: 18,
-  name: "Tether USD",
-};
-```
-
-#### Utility Functions
-
-##### `generateMorphPaymentURI(recipient, amount)`
-
-```javascript
-/**
- * Generates EIP-681 payment URI for Morph USDT transfers
- * @param {string} recipient - Recipient wallet address
- * @param {string} amount - Amount in wei (18 decimals)
- * @returns {string} EIP-681 formatted payment URI
- */
-```
-
-**Output**:
-
-```
-ethereum:0x9E12AD42c4E4d2acFBADE01a96446e48e6764B98@2810/transfer?address=0x1234...&uint256=1000000000000000000
-```
-
-### 2. BlockDAG Chain (`src/config/blockdag-chain.js`)
-
-#### Network Configuration
-
-##### `BlockDAGPrimordialTestnet`
-
-```javascript
-/**
- * BlockDAG Primordial testnet configuration
- */
-const BlockDAGPrimordialTestnet = {
-  chainId: "0x30B9", // 12473 in hex
-  chainName: "BlockDAG Primordial Testnet",
-  nativeCurrency: {
-    name: "BDAG",
-    symbol: "BDAG",
-    decimals: 18,
-  },
-  rpcUrls: ["https://rpc-testnet.blockdag.org"],
-  blockExplorerUrls: ["https://explorer-testnet.blockdag.org"],
-};
-```
-
----
-
-## 🎨 Component APIs
-
-### 1. Enhanced Payment QR Modal (`src/components/EnhancedPaymentQRModal.jsx`)
-
-#### Props Interface
+### **Environment Variables**
 
 ```typescript
-interface EnhancedPaymentQRModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  agentName: string;
-  amount: number;
-  onPaymentSuccess?: (transactionData: Object) => void;
-}
-```
-
-#### Component API
-
-##### Methods
-
-```javascript
-/**
- * Handles blockchain network selection
- * @param {string} blockchain - Selected blockchain ('blockdag', 'solana', 'morph')
- */
-const handleBlockchainSelect = (blockchain) => {
-  /* ... */
-};
-
-/**
- * Generates QR code for selected blockchain
- * @param {string} blockchain - Target blockchain
- */
-const generateQRCode = async (blockchain) => {
-  /* ... */
-};
-
-/**
- * Initiates payment monitoring
- * @param {string} transactionId - Transaction to monitor
- */
-const startPaymentMonitoring = (transactionId) => {
-  /* ... */
+const config = {
+  supabaseUrl: process.env.VITE_SUPABASE_URL,
+  supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY,
+  thirdwebClientId: process.env.VITE_THIRDWEB_CLIENT_ID,
+  thirdwebSecretKey: process.env.VITE_THIRDWEB_SECRET_KEY,
+  assemblyAiKey: process.env.ASSEBLY_AI_API_KEY,
 };
 ```
 
-### 2. AR QR Viewer (`src/components/ARQRViewer.jsx`)
+### **Base URLs**
 
-#### Props Interface
+- **Database:** `https://ncjbwzibnqrbrvicdmec.supabase.co`
+- **API Endpoint:** `/rest/v1/`
+- **Real-time:** `/realtime/v1/`
+
+---
+
+## 🗄️ **Database API (Supabase)**
+
+### **Authentication Headers**
 
 ```typescript
-interface ARQRViewerProps {
-  qrData: string;
-  position: { x: number; y: number; z: number };
-  onScan?: (qrData: string) => void;
-  visible?: boolean;
-}
+const headers = {
+  apikey: process.env.VITE_SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`,
+  "Content-Type": "application/json",
+};
 ```
 
-### 3. Unified Wallet Connect (`src/components/UnifiedWalletConnect.jsx`)
+---
 
-#### Props Interface
+## 🤖 **Agent Management API**
+
+### **1. Deploy Agent**
+
+#### **Endpoint:** `POST /deployed_objects`
+
+**Description:** Deploy a new AI agent to a specific location with customizable properties.
+
+**Request Body:**
 
 ```typescript
-interface UnifiedWalletConnectProps {
-  onWalletConnected?: (walletInfo: Object) => void;
-  supportedChains?: string[];
+interface DeployAgentRequest {
+  user_id: string;
+  object_type: ObjectType;
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+  trailing_agent?: boolean;
+  interaction_range?: number;
+  ar_notifications?: boolean;
+  location_type?: LocationType;
+  currency_type?: CurrencyType;
+  network?: NetworkType;
 }
 ```
 
-#### Wallet Connection API
+**Response:**
 
-##### Methods
+```typescript
+interface DeployAgentResponse {
+  data: DeployedObject | null;
+  error: string | null;
+  status: number;
+  statusText: string;
+}
+```
 
-```javascript
-/**
- * Connects to MetaMask wallet
- * @returns {Promise<Object>} Connection result
- */
-const connectMetaMask = async () => {
-  /* ... */
+**Implementation:**
+
+```typescript
+export const deployAgent = async (
+  agentData: DeployAgentRequest
+): Promise<DeployAgentResponse> => {
+  const { data, error } = await supabase
+    .from("deployed_objects")
+    .insert([agentData])
+    .select()
+    .single();
+
+  return {
+    data,
+    error: error?.message || null,
+    status: error ? 400 : 201,
+    statusText: error ? "Bad Request" : "Created",
+  };
 };
+```
 
-/**
- * Connects to Phantom wallet
- * @returns {Promise<Object>} Connection result
- */
-const connectPhantom = async () => {
-  /* ... */
+**Example Usage:**
+
+```typescript
+const newAgent = await deployAgent({
+  user_id: "user123",
+  object_type: "ai_agent",
+  latitude: 40.7128,
+  longitude: -74.006,
+  altitude: 10.5,
+  trailing_agent: false,
+  interaction_range: 15.0,
+  ar_notifications: true,
+  location_type: "Street",
+  currency_type: "USDFC",
+  network: "ethereum",
+});
+```
+
+---
+
+### **2. Get Agents by Location**
+
+#### **Endpoint:** `GET /deployed_objects`
+
+**Description:** Retrieve all agents within a specified geographic boundary.
+
+**Query Parameters:**
+
+```typescript
+interface LocationQuery {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+  limit?: number;
+  offset?: number;
+}
+```
+
+**Implementation:**
+
+```typescript
+export const getAgentsByLocation = async (
+  bounds: LocationBounds,
+  limit = 50
+) => {
+  const { data, error } = await supabase
+    .from("deployed_objects")
+    .select("*")
+    .gte("latitude", bounds.minLat)
+    .lte("latitude", bounds.maxLat)
+    .gte("longitude", bounds.minLng)
+    .lte("longitude", bounds.maxLng)
+    .limit(limit)
+    .order("created_at", { ascending: false });
+
+  return { data, error };
 };
+```
 
-/**
- * Disconnects current wallet
- */
-const disconnectWallet = () => {
-  /* ... */
+---
+
+### **3. Get User's Agents**
+
+#### **Endpoint:** `GET /deployed_objects`
+
+**Description:** Retrieve all agents deployed by a specific user.
+
+**Query Parameters:**
+
+```typescript
+interface UserAgentsQuery {
+  user_id: string;
+  limit?: number;
+  offset?: number;
+  order_by?: "created_at" | "object_type" | "location_type";
+  order_direction?: "asc" | "desc";
+}
+```
+
+**Implementation:**
+
+```typescript
+export const getUserAgents = async (
+  userId: string,
+  options: UserAgentsQuery = {}
+) => {
+  const { data, error } = await supabase
+    .from("deployed_objects")
+    .select("*")
+    .eq("user_id", userId)
+    .limit(options.limit || 50)
+    .order(options.order_by || "created_at", {
+      ascending: options.order_direction === "asc",
+    });
+
+  return { data, error };
 };
 ```
 
 ---
 
-## 🔐 Authentication API
+### **4. Update Agent**
 
-### Supabase Authentication (`src/lib/supabase.js`)
+#### **Endpoint:** `PATCH /deployed_objects`
 
-#### Client Configuration
+**Description:** Update properties of an existing agent (owner only).
 
-```javascript
-/**
- * Supabase client instance
- */
-export const supabase = createClient("your-supabase-url", "your-anon-key");
+**Request Body:**
+
+```typescript
+interface UpdateAgentRequest {
+  id: string;
+  updates: Partial<DeployedObject>;
+}
 ```
 
-#### Auth Functions
+**Implementation:**
 
-##### `signUp(email, password)`
+```typescript
+export const updateAgent = async (
+  agentId: string,
+  updates: Partial<DeployedObject>
+) => {
+  const { data, error } = await supabase
+    .from("deployed_objects")
+    .update(updates)
+    .eq("id", agentId)
+    .select()
+    .single();
 
-```javascript
-/**
- * Creates new user account
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise<Object>} Signup result
- */
-```
-
-##### `signIn(email, password)`
-
-```javascript
-/**
- * Authenticates existing user
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise<Object>} Login result
- */
-```
-
-##### `signOut()`
-
-```javascript
-/**
- * Signs out current user
- * @returns {Promise<Object>} Logout result
- */
+  return { data, error };
+};
 ```
 
 ---
 
-## 📱 Mobile Detection API (`src/hooks/use-mobile.js`)
+### **5. Delete Agent**
 
-#### Hook Usage
+#### **Endpoint:** `DELETE /deployed_objects`
 
-```javascript
-/**
- * React hook for mobile device detection
- * @returns {boolean} True if mobile device
- */
-const isMobile = useMobile();
+**Description:** Remove an agent from the platform (owner only).
+
+**Implementation:**
+
+```typescript
+export const deleteAgent = async (agentId: string) => {
+  const { data, error } = await supabase
+    .from("deployed_objects")
+    .delete()
+    .eq("id", agentId)
+    .select()
+    .single();
+
+  return { data, error };
+};
 ```
 
 ---
 
-## 🎯 Response Status Codes
+## 🌍 **Location & Proximity API**
 
-### Success Responses
+### **1. Find Nearby Agents**
 
-- `200` - OK: Request successful
-- `201` - Created: Resource created successfully
-- `204` - No Content: Request successful, no content returned
+**Description:** Find agents within a specific radius of a location.
 
-### Error Responses
+**Function:**
 
-- `400` - Bad Request: Invalid request parameters
-- `401` - Unauthorized: Authentication required
-- `403` - Forbidden: Access denied
-- `404` - Not Found: Resource not found
-- `422` - Unprocessable Entity: Validation errors
-- `500` - Internal Server Error: Server error
+```typescript
+export const findNearbyAgents = async (
+  centerLat: number,
+  centerLng: number,
+  radiusKm: number = 0.1
+) => {
+  // Calculate bounding box
+  const latOffset = radiusKm / 111.32; // 1 degree ≈ 111.32 km
+  const lngOffset = radiusKm / (111.32 * Math.cos((centerLat * Math.PI) / 180));
 
-### Blockchain-Specific Errors
+  const bounds: LocationBounds = {
+    minLat: centerLat - latOffset,
+    maxLat: centerLat + latOffset,
+    minLng: centerLng - lngOffset,
+    maxLng: centerLng + lngOffset,
+  };
 
-- `WALLET_NOT_CONNECTED` - Wallet not connected
-- `NETWORK_MISMATCH` - Wrong blockchain network
-- `INSUFFICIENT_FUNDS` - Insufficient wallet balance
-- `TRANSACTION_FAILED` - Blockchain transaction failed
-- `CONTRACT_ERROR` - Smart contract execution error
+  const { data: agents, error } = await getAgentsByLocation(bounds);
+
+  if (error) return { agents: [], error };
+
+  // Filter by exact distance
+  const nearbyAgents =
+    agents?.filter((agent) => {
+      const distance = calculateDistance(
+        centerLat,
+        centerLng,
+        agent.latitude,
+        agent.longitude
+      );
+      return distance <= radiusKm;
+    }) || [];
+
+  return { agents: nearbyAgents, error: null };
+};
+```
+
+### **2. Calculate Distance**
+
+**Description:** Calculate distance between two GPS coordinates.
+
+**Function:**
+
+```typescript
+export const calculateDistance = (
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+```
 
 ---
 
-## 🔄 WebSocket Events (Future Implementation)
+## 🔄 **Real-time API (WebSocket)**
 
-### QR Code Status Updates
+### **1. Subscribe to Agent Updates**
 
-```javascript
-// Subscribe to QR code status changes
-supabase
-  .channel("ar_qr_codes")
-  .on(
-    "postgres_changes",
-    { event: "UPDATE", schema: "public", table: "ar_qr_codes" },
-    (payload) => {
-      console.log("QR code updated:", payload);
+**Description:** Subscribe to real-time updates for all agents.
+
+**Implementation:**
+
+```typescript
+export const subscribeToAgentUpdates = (callback: (payload: any) => void) => {
+  const subscription = supabase
+    .channel("deployed_objects_changes")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "deployed_objects",
+      },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
+
+  return subscription;
+};
+```
+
+**Payload Structure:**
+
+```typescript
+interface RealtimePayload {
+  eventType: "INSERT" | "UPDATE" | "DELETE";
+  new: DeployedObject | null;
+  old: DeployedObject | null;
+  schema: string;
+  table: string;
+  commit_timestamp: string;
+}
+```
+
+### **2. Subscribe to Location-based Updates**
+
+**Description:** Subscribe to updates within a specific geographic area.
+
+**Implementation:**
+
+```typescript
+export const subscribeToLocationUpdates = (
+  bounds: LocationBounds,
+  callback: (payload: any) => void
+) => {
+  const subscription = supabase
+    .channel("location_updates")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "deployed_objects",
+        filter: `latitude=gte.${bounds.minLat}&latitude=lte.${bounds.maxLat}&longitude=gte.${bounds.minLng}&longitude=lte.${bounds.maxLng}`,
+      },
+      callback
+    )
+    .subscribe();
+
+  return subscription;
+};
+```
+
+---
+
+## 🎯 **AR/QR Code API**
+
+### **1. Generate QR Code**
+
+**Description:** Generate QR code data for agent deployment.
+
+**Function:**
+
+```typescript
+export const generateAgentQRCode = (agentData: DeployedObject): string => {
+  const qrData = {
+    agentId: agentData.id,
+    latitude: agentData.latitude,
+    longitude: agentData.longitude,
+    objectType: agentData.object_type,
+    interactionRange: agentData.interaction_range,
+    timestamp: new Date().toISOString(),
+    version: "1.0",
+  };
+
+  return JSON.stringify(qrData);
+};
+```
+
+### **2. Parse QR Code**
+
+**Description:** Parse and validate QR code data.
+
+**Function:**
+
+```typescript
+interface QRCodeData {
+  agentId: string;
+  latitude: number;
+  longitude: number;
+  objectType: ObjectType;
+  interactionRange?: number;
+  timestamp: string;
+  version: string;
+}
+
+export const parseQRCode = (qrString: string): QRCodeData | null => {
+  try {
+    const data = JSON.parse(qrString);
+
+    // Validate required fields
+    if (
+      !data.agentId ||
+      !data.latitude ||
+      !data.longitude ||
+      !data.objectType
+    ) {
+      return null;
     }
-  )
-  .subscribe();
+
+    return data as QRCodeData;
+  } catch (error) {
+    console.error("Failed to parse QR code:", error);
+    return null;
+  }
+};
 ```
 
-### Payment Notifications
+---
 
-```javascript
-// Subscribe to payment transaction updates
-supabase
-  .channel("payment_transactions")
-  .on(
-    "postgres_changes",
-    { event: "INSERT", schema: "public", table: "payment_transactions" },
-    (payload) => {
-      console.log("New payment:", payload);
+## 🔍 **Analytics & Monitoring API**
+
+### **1. Connection Test**
+
+**Description:** Test database connectivity and performance.
+
+**Function:**
+
+```typescript
+export const testSupabaseConnection = async (): Promise<{
+  success: boolean;
+  data?: any;
+  error?: string;
+  responseTime?: number;
+}> => {
+  const startTime = Date.now();
+
+  try {
+    const { data, error } = await supabase
+      .from("deployed_objects")
+      .select("*")
+      .limit(1);
+
+    const responseTime = Date.now() - startTime;
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+        responseTime,
+      };
     }
-  )
-  .subscribe();
+
+    return {
+      success: true,
+      data,
+      responseTime,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+      responseTime: Date.now() - startTime,
+    };
+  }
+};
+```
+
+### **2. Get Platform Statistics**
+
+**Description:** Retrieve platform usage statistics.
+
+**Function:**
+
+```typescript
+export const getPlatformStats = async () => {
+  const { data, error } = await supabase
+    .from("deployed_objects")
+    .select("object_type, location_type, created_at");
+
+  if (error) return { stats: null, error };
+
+  const stats = {
+    totalAgents: data?.length || 0,
+    agentsByType: {},
+    agentsByLocation: {},
+    recentDeployments:
+      data?.filter((agent) => {
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        return new Date(agent.created_at) > dayAgo;
+      }).length || 0,
+  };
+
+  return { stats, error: null };
+};
 ```
 
 ---
 
-## 📋 Rate Limits
+## 🔐 **Authentication API** _(Future Implementation)_
 
-### QR Code Generation
+### **1. User Authentication**
 
-- **Limit**: 100 requests per minute per user
-- **Timeout**: 5 minutes for QR code expiration
-- **Cooldown**: 1 second between requests
+**Function:**
 
-### Database Operations
+```typescript
+export const authenticateUser = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-- **Limit**: 1000 requests per minute per user
-- **Batch Size**: Maximum 50 records per query
-- **Connection Pool**: 20 concurrent connections
-
-### Blockchain Interactions
-
-- **MetaMask**: Limited by browser wallet
-- **Phantom**: Limited by wallet implementation
-- **RPC Calls**: 100 requests per minute per endpoint
-
----
-
-## 🧪 Testing Endpoints
-
-### Development QR Generation
-
-```javascript
-// Test QR code generation
-const testQR = await generateARQRCode(
-  1.0,
-  "test-address",
-  "morph",
-  "Test Agent"
-);
-console.log("Test QR:", testQR);
+  return {
+    user: data.user,
+    session: data.session,
+    error: error?.message || null,
+  };
+};
 ```
 
-### Database Health Check
+### **2. Wallet Connection**
 
-```javascript
-// Test database connection
-const { data, error } = await supabase
-  .from("ar_qr_codes")
-  .select("count")
-  .limit(1);
-console.log("DB Health:", error ? "Error" : "OK");
+**Function:**
+
+```typescript
+export const connectWallet = async (walletAddress: string) => {
+  // ThirdWeb wallet connection implementation
+  // This will be implemented in Phase 3
+};
 ```
 
 ---
 
-**API Version**: 1.3.0  
-**Last Updated**: July 30, 2025  
-**Documentation Status**: ✅ Complete  
-**Coverage**: Frontend Services, Database, Blockchain, Components
+## 🚀 **External API Integrations**
+
+### **1. Assembly AI Integration**
+
+**Description:** Voice processing and transcription services.
+
+**Base URL:** `https://api.assemblyai.com/v2/`
+
+**Headers:**
+
+```typescript
+const assemblyHeaders = {
+  authorization: process.env.ASSEBLY_AI_API_KEY,
+  "content-type": "application/json",
+};
+```
+
+**Functions:**
+
+```typescript
+export const transcribeAudio = async (audioUrl: string) => {
+  // Implementation planned for Phase 2
+};
+```
+
+### **2. ThirdWeb Integration**
+
+**Description:** Blockchain and wallet operations.
+
+**Configuration:**
+
+```typescript
+const thirdwebConfig = {
+  clientId: process.env.VITE_THIRDWEB_CLIENT_ID,
+  secretKey: process.env.VITE_THIRDWEB_SECRET_KEY,
+};
+```
+
+---
+
+## 📊 **Error Handling**
+
+### **Standard Error Response**
+
+```typescript
+interface APIError {
+  error: string;
+  message: string;
+  code?: string;
+  details?: any;
+  timestamp: string;
+}
+```
+
+### **Error Codes**
+
+- `AUTH_ERROR`: Authentication failure
+- `VALIDATION_ERROR`: Invalid input data
+- `NOT_FOUND`: Resource not found
+- `PERMISSION_DENIED`: Insufficient permissions
+- `RATE_LIMITED`: Too many requests
+- `SERVER_ERROR`: Internal server error
+
+---
+
+## 📋 **Rate Limits**
+
+### **Supabase Limits**
+
+- **Requests per minute:** 100 (free tier)
+- **Real-time connections:** 200 concurrent
+- **Database connections:** 60 concurrent
+
+### **Best Practices**
+
+- Implement request debouncing
+- Use real-time subscriptions instead of polling
+- Cache frequently accessed data
+- Implement proper error handling and retries
+
+---
+
+## 🧪 **Testing API Endpoints**
+
+### **Example Test Suite**
+
+```typescript
+describe("Agent API", () => {
+  test("Deploy agent successfully", async () => {
+    const agentData = {
+      user_id: "test_user",
+      object_type: "ai_agent",
+      latitude: 40.7128,
+      longitude: -74.006,
+    };
+
+    const result = await deployAgent(agentData);
+    expect(result.data).toBeTruthy();
+    expect(result.error).toBeNull();
+  });
+
+  test("Get nearby agents", async () => {
+    const nearby = await findNearbyAgents(40.7128, -74.006, 1.0);
+    expect(nearby.agents).toBeInstanceOf(Array);
+  });
+});
+```
+
+---
+
+_This API documentation will be expanded as new endpoints and features are implemented throughout the development phases._
