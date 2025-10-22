@@ -1,0 +1,6 @@
+[submodule "eshop"]
+	path = eshop
+	url = https://github.com/petrkrulis2022/shop-sparkle-assets.git
+[submodule "on-off-ramp"]
+	path = on-off-ramp
+	url = https://github.com/petrkrulis2022/on-off-ramp-cube-paygate.git
