@@ -2,38 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NeAR Viewer - AR Agent Network</title>
-    <script>
-      // Enhanced Buffer polyfill for Solana libraries
-      if (typeof globalThis.Buffer === "undefined") {
-        // Import buffer polyfill
-        globalThis.Buffer = {
-          from: function (data, encoding) {
-            if (typeof data === "string") {
-              return new TextEncoder().encode(data);
-            }
-            return new Uint8Array(data);
-          },
-          alloc: function (size) {
-            return new Uint8Array(size);
-          },
-          isBuffer: function (obj) {
-            return obj instanceof Uint8Array;
-          },
-        };
-        window.Buffer = globalThis.Buffer;
-      }
-
-      // Additional Node.js polyfills
-      if (typeof globalThis.process === "undefined") {
-        globalThis.process = { env: {} };
-      }
-    </script>
+    <title>CubePay Exchange - Your Gateway to Crypto</title>
+    <meta
+      name="description"
+      content="Buy, sell, and manage cryptocurrency with ease. Your gateway to crypto - secure, fast, and user-friendly."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
