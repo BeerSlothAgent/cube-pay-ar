@@ -24,8 +24,6 @@ const AR3DScene = ({
   userLocation,
   cameraViewSize = { width: 1280, height: 720 },
   connectedWallet = null,
-  paymentContext = null,
-  isPaymentMode = false,
 }) => {
   const [agents3D, setAgents3D] = useState([]);
 
@@ -52,34 +50,6 @@ const AR3DScene = ({
   const handleAgentClick = (agent) => {
     console.log("🤖 3D Agent clicked:", agent.name);
     console.log("🤖 Agent data:", agent);
-
-    // DEBUG: Log all payment-related fields for debugging payment modal
-    console.log("💰 PAYMENT DEBUG - Agent Payment Fields:", {
-      name: agent?.name,
-      id: agent?.id,
-      interaction_fee_amount: agent?.interaction_fee_amount,
-      interaction_fee: agent?.interaction_fee,
-      fee_amount: agent?.fee_amount,
-      payment_config: agent?.payment_config,
-      deployment_network_name: agent?.deployment_network_name,
-      deployment_chain_id: agent?.deployment_chain_id,
-      network: agent?.network,
-      chain_id: agent?.chain_id,
-      ALERT:
-        agent?.name === "Cube Dynamic 1"
-          ? "THIS IS CUBE DYNAMIC 1 - EXPECTED ID: f911cc7d-244c-4916-9612-71b3904e9424"
-          : "Other agent",
-      allKeys: agent
-        ? Object.keys(agent).filter(
-            (k) =>
-              k.includes("fee") ||
-              k.includes("network") ||
-              k.includes("chain") ||
-              k.includes("amount")
-          )
-        : [],
-    });
-
     setSelectedAgent(agent);
     setShowAgentModal(true);
 
@@ -108,17 +78,7 @@ const AR3DScene = ({
       paymentData
     );
     setShowCubePayment(false);
-
-    // 💳 If in payment mode, redirect back to merchant
-    if (isPaymentMode && paymentContext?.redirectUrl) {
-      console.log(
-        "🔄 Redirecting back to merchant:",
-        paymentContext.redirectUrl
-      );
-      window.location.href = `${paymentContext.redirectUrl}&status=success&payment_method=${paymentData.method}&amount=${paymentData.amount}`;
-    } else {
-      setShowAgentModal(true); // Return to agent modal
-    }
+    setShowAgentModal(true); // Return to agent modal
   };
 
   // Handle QR scan request
@@ -531,17 +491,14 @@ const AR3DScene = ({
         isOpen={showCubePayment}
         onClose={closeModals}
         onPaymentComplete={handleCubePaymentComplete}
-        paymentAmount={
-          paymentContext?.amount || selectedAgent?.interaction_fee || 10.0
-        }
-        paymentContext={paymentContext}
+        paymentAmount={selectedAgent?.interaction_fee || 10.0}
         enabledMethods={[
           "crypto_qr",
           "virtual_card",
           "bank_qr",
           "voice_pay",
           "sound_pay",
-          "btc_payments",
+          "onboard_crypto",
         ]}
       />
 

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// Force refresh after Polygon Amoy network fixes
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,17 +7,12 @@ import {
   useNavigate,
 } from "react-router-dom";
 import ARViewer from "./components/ARViewer";
-import AgentMarketplace from "./components/marketplace/AgentMarketplace";
 import MainLandingScreen from "./components/MainLandingScreen";
 import CameraActivationScreen from "./components/CameraActivationScreen";
+import CubePaymentDemo from "./components/CubePaymentDemo";
 import SimpleCubeTest from "./components/SimpleCubeTest";
 import CameraTest from "./components/CameraTest";
 import UnifiedWalletConnect from "./components/UnifiedWalletConnect";
-import AgentFeeValidationDashboard from "./components/AgentFeeValidationDashboard";
-import SimpleTest from "./components/SimpleTest"; // Add simple test component
-import VirtualTerminal from "./components/VirtualTerminal"; // NEW: Dynamic payment terminal
-import PaymentRedirect from "./components/PaymentRedirect"; // NEW: Payment redirect page
-import PaymentRedirectSimple from "./components/PaymentRedirectSimple"; // Simple test version
 import ThirdWebProviderWrapper from "./providers/ThirdWebProvider";
 import NotificationProvider, {
   useNotifications,
@@ -44,6 +38,10 @@ function AppContent() {
     createGlobalNotificationFunctions(notifications);
   }, [notifications]);
 
+  const handleWalletConnectionChange = (connection) => {
+    setWalletConnection(connection);
+  };
+
   const handleShowWallet = () => {
     setShowWalletModal(true);
   };
@@ -55,16 +53,12 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Routes>
-        {/* Debug Route for Simple Test */}
-        <Route path="/test" element={<SimpleTest />} />
-        {/* New Agent Marketplace Route (Cube-Ready) */}
-        <Route path="/new-marketplace" element={<AgentMarketplace />} />
         {/* Main Landing Screen Route */}
         <Route
           path="/"
           element={
             <MainLandingScreen
-              onEnterAgentWorld={() => navigate("/ar-view")}
+              onEnterAgentWorld={() => navigate("/camera-activation")}
               onShowWallet={handleShowWallet}
             />
           }
@@ -73,23 +67,11 @@ function AppContent() {
         {/* Simple Cube Test Route */}
         <Route path="/test-cube" element={<SimpleCubeTest />} />
 
-        {/* Agent Fee Validation Dashboard (Debug) */}
-        <Route path="/debug-fees" element={<AgentFeeValidationDashboard />} />
+        {/* 3D Cube Payment Demo Route */}
+        <Route path="/cube-demo" element={<CubePaymentDemo />} />
 
         {/* Camera Debug Test Route */}
         <Route path="/camera-test" element={<CameraTest />} />
-
-        {/* Payment Redirect Page (Shows payment info before AR Viewer) */}
-        <Route path="/payment-redirect" element={<PaymentRedirect />} />
-
-        {/* Simple Payment Redirect for testing */}
-        <Route
-          path="/payment-redirect-simple"
-          element={<PaymentRedirectSimple />}
-        />
-
-        {/* Virtual Terminal Payment Gateway (Dynamic Payment Sessions) */}
-        <Route path="/virtual-terminal" element={<VirtualTerminal />} />
 
         {/* Camera Activation Screen Route */}
         <Route
@@ -124,54 +106,7 @@ function AppContent() {
             </div>
 
             <UnifiedWalletConnect
-              open={showWalletModal}
-              onOpenChange={(connectionData) => {
-                // 🔧 CRITICAL FIX: Prioritize Solana address when connected
-                console.log(
-                  "🔍 App: Received connection data:",
-                  connectionData
-                );
-
-                if (connectionData) {
-                  let address = null;
-                  let isConnected = false;
-                  let networkType = "unknown";
-
-                  // 1. Check Solana connection first (PRIORITY)
-                  if (
-                    connectionData.solana?.isConnected &&
-                    connectionData.solana?.address
-                  ) {
-                    address = connectionData.solana.address;
-                    isConnected = true;
-                    networkType = "solana";
-                    console.log("🟢 App: Using Solana address:", address);
-                  }
-                  // 2. Fallback to EVM if Solana not connected
-                  else if (
-                    connectionData.evm?.isConnected &&
-                    connectionData.evm?.address
-                  ) {
-                    address = connectionData.evm.address;
-                    isConnected = true;
-                    networkType = "evm";
-                    console.log("🟡 App: Using EVM address:", address);
-                  }
-
-                  console.log("🎯 App: Final wallet state:", {
-                    address,
-                    isConnected,
-                    networkType,
-                  });
-
-                  setWalletConnection({
-                    isConnected,
-                    address,
-                    networkType,
-                    connectionData, // Store full data for debugging
-                  });
-                }
-              }}
+              onConnectionChange={handleWalletConnectionChange}
             />
 
             {walletConnection.isConnected && (

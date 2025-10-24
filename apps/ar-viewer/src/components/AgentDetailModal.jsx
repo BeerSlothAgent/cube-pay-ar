@@ -19,10 +19,6 @@ import {
   ChevronUp,
   Info,
 } from "lucide-react";
-import {
-  resolveInteractionFee,
-  getAgentNetworkInfo,
-} from "../utils/agentDataValidator";
 
 const AgentDetailModal = ({ agent, isOpen, onClose, userLocation }) => {
   const [copiedField, setCopiedField] = useState(null);
@@ -224,20 +220,20 @@ const AgentDetailModal = ({ agent, isOpen, onClose, userLocation }) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-700">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-400">
-                    {(() => {
-                      const resolvedFee = resolveInteractionFee(agent);
-                      console.log(
-                        "🔍 AgentDetailModal NEW Fee Display:",
-                        resolvedFee
-                      );
-                      return resolvedFee.amount;
-                    })()}
+                    {agent.fee_usdt ||
+                      agent.fee_usdc ||
+                      agent.fee_usds ||
+                      agent.interaction_fee_usdfc ||
+                      1}
                   </div>
                   <div className="text-sm text-gray-400">
-                    {(() => {
-                      const resolvedFee = resolveInteractionFee(agent);
-                      return resolvedFee.token;
-                    })()}{" "}
+                    {agent.fee_usdt
+                      ? "USDT"
+                      : agent.fee_usdc
+                      ? "USDC"
+                      : agent.fee_usds
+                      ? "USDs"
+                      : agent.currency_type || "USDFC"}{" "}
                     Fee
                   </div>
                 </div>
@@ -351,23 +347,30 @@ const AgentDetailModal = ({ agent, isOpen, onClose, userLocation }) => {
                   <div className="flex items-center justify-between py-2">
                     <span className="text-gray-400">Currency:</span>
                     <span className="text-white">
-                      {(() => {
-                        const resolvedFee = resolveInteractionFee(agent);
-                        return resolvedFee.token;
-                      })()}
+                      {agent.fee_usdt
+                        ? "USDT"
+                        : agent.fee_usdc
+                        ? "USDC"
+                        : agent.fee_usds
+                        ? "USDs"
+                        : agent.currency_type || "USDFC"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2">
                     <span className="text-gray-400">Interaction Fee:</span>
                     <span className="text-green-400 font-semibold">
-                      {(() => {
-                        const resolvedFee = resolveInteractionFee(agent);
-                        console.log(
-                          "🔍 AgentDetailModal Payment Section NEW Fee Display:",
-                          resolvedFee
-                        );
-                        return `${resolvedFee.amount} ${resolvedFee.token}`;
-                      })()}
+                      {agent.fee_usdt ||
+                        agent.fee_usdc ||
+                        agent.fee_usds ||
+                        agent.interaction_fee_usdfc ||
+                        1}{" "}
+                      {agent.fee_usdt
+                        ? "USDT"
+                        : agent.fee_usdc
+                        ? "USDC"
+                        : agent.fee_usds
+                        ? "USDs"
+                        : agent.currency_type || "USDFC"}
                     </span>
                   </div>
                 </div>
@@ -433,29 +436,9 @@ const AgentDetailModal = ({ agent, isOpen, onClose, userLocation }) => {
                       Interaction Fee:
                     </span>
                     <p className="text-white font-semibold">
-                      {(() => {
-                        const resolvedFee = resolveInteractionFee(agent);
-                        console.log(
-                          "🔍 AgentDetailModal Detailed NEW Fee Display:",
-                          resolvedFee
-                        );
-                        return `${resolvedFee.amount} ${resolvedFee.token}`;
-                      })()}
+                      {agent.interaction_fee || 1.0}{" "}
+                      {agent.token_symbol || "USDT"}
                     </p>
-                    {(() => {
-                      const resolvedFee = resolveInteractionFee(agent);
-                      if (
-                        resolvedFee.source &&
-                        !resolvedFee.source.includes("fallback")
-                      ) {
-                        return (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Source: {resolvedFee.source}
-                          </p>
-                        );
-                      }
-                      return null;
-                    })()}
                   </div>
                 </div>
               </div>

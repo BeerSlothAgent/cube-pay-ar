@@ -127,8 +127,7 @@ const SolanaWalletContent = ({ onConnectionChange, network = "testnet" }) => {
     if (onConnectionChange) {
       onConnectionChange({
         isConnected: connected,
-        address: publicKey?.toBase58(), // 🔧 CRITICAL: Use 'address' key for consistency with App.jsx
-        publicKey: publicKey?.toBase58(), // Keep for backward compatibility
+        publicKey: publicKey?.toBase58(),
         wallet: wallet?.adapter?.name,
         network: networkConfig.name,
         networkType: network,
