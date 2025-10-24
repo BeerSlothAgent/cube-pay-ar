@@ -1,0 +1,6 @@
+[submodule "submodules/on-off-ramp-cube-paygate"]
+	path = submodules/on-off-ramp-cube-paygate
+	url = https://github.com/petrkrulis2022/on-off-ramp-cube-paygate
+[submodule "submodules/shop-sparkle-assets"]
+	path = submodules/shop-sparkle-assets
+	url = https://github.com/petrkrulis2022/shop-sparkle-assets
