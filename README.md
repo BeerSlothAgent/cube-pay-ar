@@ -1,4 +1,4 @@
-# 🚀 CubePay Exchange
+_CubePay Exchange - Your Gateway to Crypto_# 🚀 CubePay Exchange
 
 **Your Gateway to Crypto - Buy, Sell, Own**
 
@@ -215,6 +215,20 @@ src/
 - [x] Loading states
 - [x] Error handling
 - [x] Toast notifications
+
+## Cross-Chain Testnets - USDC Contract Addresses (EVM + Solana)
+
+This table lists the USDC contract addresses for the testnets supported by the `on-off-ramp-cube-paygate` submodule's payment functionality.
+
+| Chain | Network Name | Token | Decimals | USDC Contract Address |
+| :--- | :--- | :--- | :--- | :--- |
+| Arbitrum Sepolia | Arbitrum Sepolia | USDC | 6 | `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` |
+| Avalanche Fuji | Avalanche Fuji | USDC | 6 | `0x5425890298aed601595a70AB815c96711a31Bc65` |
+| Base Sepolia | Base Sepolia | USDC | 6 | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| Ethereum Sepolia | Ethereum Sepolia | USDC | 6 | `0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238` |
+| OP Sepolia | OP Sepolia | USDC | 6 | `0x5fd84259d66Cd46123540766Be93DFE6D43130D7` |
+| Polygon Amoy | Polygon Amoy | USDC | 6 | `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` |
+| Solana Devnet | Solana Devnet | USDC | 6 | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` |
 
 ## 🔮 Future Enhancements
 
