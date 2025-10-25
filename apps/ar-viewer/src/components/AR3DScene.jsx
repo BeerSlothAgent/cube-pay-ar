@@ -24,6 +24,8 @@ const AR3DScene = ({
   userLocation,
   cameraViewSize = { width: 1280, height: 720 },
   connectedWallet = null,
+  paymentContext = null,
+  isPaymentMode = false,
 }) => {
   const [agents3D, setAgents3D] = useState([]);
 
@@ -50,6 +52,34 @@ const AR3DScene = ({
   const handleAgentClick = (agent) => {
     console.log("🤖 3D Agent clicked:", agent.name);
     console.log("🤖 Agent data:", agent);
+
+    // DEBUG: Log all payment-related fields for debugging payment modal
+    console.log("💰 PAYMENT DEBUG - Agent Payment Fields:", {
+      name: agent?.name,
+      id: agent?.id,
+      interaction_fee_amount: agent?.interaction_fee_amount,
+      interaction_fee: agent?.interaction_fee,
+      fee_amount: agent?.fee_amount,
+      payment_config: agent?.payment_config,
+      deployment_network_name: agent?.deployment_network_name,
+      deployment_chain_id: agent?.deployment_chain_id,
+      network: agent?.network,
+      chain_id: agent?.chain_id,
+      ALERT:
+        agent?.name === "Cube Dynamic 1"
+          ? "THIS IS CUBE DYNAMIC 1 - EXPECTED ID: f911cc7d-244c-4916-9612-71b3904e9424"
+          : "Other agent",
+      allKeys: agent
+        ? Object.keys(agent).filter(
+            (k) =>
+              k.includes("fee") ||
+              k.includes("network") ||
+              k.includes("chain") ||
+              k.includes("amount")
+          )
+        : [],
+    });
+
     setSelectedAgent(agent);
     setShowAgentModal(true);
 
@@ -78,7 +108,17 @@ const AR3DScene = ({
       paymentData
     );
     setShowCubePayment(false);
-    setShowAgentModal(true); // Return to agent modal
+
+    // 💳 If in payment mode, redirect back to merchant
+    if (isPaymentMode && paymentContext?.redirectUrl) {
+      console.log(
+        "🔄 Redirecting back to merchant:",
+        paymentContext.redirectUrl
+      );
+      window.location.href = `${paymentContext.redirectUrl}&status=success&payment_method=${paymentData.method}&amount=${paymentData.amount}`;
+    } else {
+      setShowAgentModal(true); // Return to agent modal
+    }
   };
 
   // Handle QR scan request
@@ -483,6 +523,24 @@ const AR3DScene = ({
         onClose={closeModals}
         onPayment={handlePaymentRequest}
         onQRScan={handleQRScanRequest}
+        paymentAmount={
+          // 💰 ONLY pass dynamic amount to Payment Terminals, NOT regular agents
+          (() => {
+            const isPaymentTerminal =
+              selectedAgent?.agent_type === "Payment Terminal" ||
+              selectedAgent?.agent_type === "Trailing Payment Terminal";
+
+            console.log("🔍 AR3DScene: Determining paymentAmount for modal", {
+              agentName: selectedAgent?.name,
+              agentType: selectedAgent?.agent_type,
+              isPaymentTerminal,
+              paymentContextAmount: paymentContext?.amount,
+              willPass: isPaymentTerminal ? paymentContext?.amount : null,
+            });
+
+            return isPaymentTerminal ? paymentContext?.amount : null;
+          })()
+        }
       />
 
       {/* 3D Cube Payment Engine - Revolutionary AR Payment Interface */}
@@ -491,14 +549,40 @@ const AR3DScene = ({
         isOpen={showCubePayment}
         onClose={closeModals}
         onPaymentComplete={handleCubePaymentComplete}
-        paymentAmount={selectedAgent?.interaction_fee || 10.0}
+        paymentAmount={
+          // 💰 ONLY use dynamic amount for Payment Terminals, NOT regular agents
+          (() => {
+            const isPaymentTerminal =
+              selectedAgent?.agent_type === "Payment Terminal" ||
+              selectedAgent?.agent_type === "Trailing Payment Terminal";
+
+            const amount = isPaymentTerminal
+              ? paymentContext?.amount || selectedAgent?.interaction_fee || 10.0
+              : selectedAgent?.interaction_fee_amount ||
+                selectedAgent?.interaction_fee ||
+                10.0;
+
+            console.log("🔍 AR3DScene: Determining paymentAmount for cube", {
+              agentName: selectedAgent?.name,
+              agentType: selectedAgent?.agent_type,
+              isPaymentTerminal,
+              paymentContextAmount: paymentContext?.amount,
+              selectedAgentFee: selectedAgent?.interaction_fee,
+              selectedAgentFeeAmount: selectedAgent?.interaction_fee_amount,
+              finalAmount: amount,
+            });
+
+            return amount;
+          })()
+        }
+        paymentContext={paymentContext}
         enabledMethods={[
           "crypto_qr",
           "virtual_card",
           "bank_qr",
           "voice_pay",
           "sound_pay",
-          "onboard_crypto",
+          "btc_payments",
         ]}
       />
 

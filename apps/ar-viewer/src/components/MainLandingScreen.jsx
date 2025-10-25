@@ -16,9 +16,11 @@ import {
   Database,
 } from "lucide-react";
 import { useDatabase } from "../hooks/useDatabase";
-import NeARAgentsMarketplace from "./NeARAgentsMarketplace";
+import NewNeARAgentsMarketplace from "./NewNeARAgentsMarketplace";
 import ARQRTestRunner from "./ARQRTestRunner";
 import DatabaseStatusComponent from "./DatabaseStatusComponent";
+import NetworkDisplay from "./NetworkDisplay";
+import WalletAddressDisplay from "./WalletAddressDisplay";
 
 const MainLandingScreen = ({ onEnterAgentWorld, onShowWallet }) => {
   const { getNearAgents, getCurrentLocation, isLoading, refreshConnection } =
@@ -92,13 +94,8 @@ const MainLandingScreen = ({ onEnterAgentWorld, onShowWallet }) => {
             <Bell className="w-5 h-5 text-slate-400" />
           </button>
 
-          {/* NeAR Protocol Badge */}
-          <Badge className="bg-green-500/20 text-green-400 border-green-400/30 px-3 py-1">
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">NeAR Protocol</span>
-            </div>
-          </Badge>
+          {/* Wallet Address Display (replaces NeAR Protocol badge) */}
+          <WalletAddressDisplay />
 
           {/* Wallet Button */}
           <Button
@@ -108,6 +105,9 @@ const MainLandingScreen = ({ onEnterAgentWorld, onShowWallet }) => {
             <Wallet className="w-4 h-4 mr-2" />
             Wallet
           </Button>
+
+          {/* Network Status Display */}
+          <NetworkDisplay />
         </div>
       </header>
 
@@ -309,8 +309,8 @@ const MainLandingScreen = ({ onEnterAgentWorld, onShowWallet }) => {
         </div>
       </footer>
 
-      {/* NeAR Agents Marketplace Modal */}
-      <NeARAgentsMarketplace
+      {/* New NeAR Agents Marketplace Modal with correct data */}
+      <NewNeARAgentsMarketplace
         isOpen={showMarketplace}
         onClose={() => setShowMarketplace(false)}
         userLocation={currentLocation}

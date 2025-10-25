@@ -25,6 +25,308 @@ import {
   MicOff,
   VideoOff,
 } from "lucide-react";
+import {
+  getUSDCContractForChain,
+  getNetworkInfo,
+} from "../services/evmNetworkService";
+
+// Network to Chain ID mapping for consistency with ModernAgentCard
+const networkToChainId = {
+  "ethereum-sepolia": 11155111,
+  "polygon-amoy": 80002,
+  "Polygon Amoy": 80002, // ✅ CRITICAL: Handle the "Amoy 1" agent format
+  "arbitrum-sepolia": 421614,
+  "optimism-sepolia": 11155420,
+  "base-sepolia": 84532,
+  "solana-devnet": "devnet", // Special case for Solana
+};
+
+// Helper functions for dynamic agent payment data
+const getServiceFeeDisplay = (agent, paymentAmount = null) => {
+  // 💰 PRIORITY 0: Use dynamic payment amount from e-shop/on-ramp if available
+  if (
+    paymentAmount !== null &&
+    paymentAmount !== undefined &&
+    paymentAmount > 0
+  ) {
+    console.log("💰 Using dynamic payment amount:", paymentAmount);
+    return `${paymentAmount} USDC`;
+  }
+
+  // Use the same priority logic as resolveInteractionFee to ensure consistency
+  console.log("🔍 AgentInteractionModal: Full agent data for fee:", {
+    name: agent?.name,
+    id: agent?.id,
+    interaction_fee_amount: agent?.interaction_fee_amount,
+    interaction_fee_usdfc: agent?.interaction_fee_usdfc,
+    interaction_fee: agent?.interaction_fee,
+    interaction_fee_token: agent?.interaction_fee_token,
+    allKeys: agent
+      ? Object.keys(agent).filter(
+          (k) => k.includes("fee") || k.includes("amount")
+        )
+      : [],
+    TRACKING:
+      "CUBE DYNAMIC 1 DISCREPANCY - Expected ID: f911cc7d-244c-4916-9612-71b3904e9424",
+  });
+
+  // 🔧 CRITICAL: Use EXACT same priority as database schema (NO fee_usdc/fee_usdt)
+  let fee = 1; // fallback
+  let token = "USDC";
+  let source = "fallback";
+
+  // PRIORITY 1: interaction_fee_amount (authoritative field for new deployments)
+  if (
+    agent?.interaction_fee_amount !== undefined &&
+    agent?.interaction_fee_amount !== null &&
+    !isNaN(agent?.interaction_fee_amount) &&
+    agent?.interaction_fee_amount > 0
+  ) {
+    fee = parseFloat(agent.interaction_fee_amount);
+    token = agent?.interaction_fee_token || "USDC";
+    source = "interaction_fee_amount";
+  }
+  // PRIORITY 2: interaction_fee_usdfc (legacy field)
+  else if (
+    agent?.interaction_fee_usdfc !== undefined &&
+    agent?.interaction_fee_usdfc !== null &&
+    !isNaN(agent?.interaction_fee_usdfc) &&
+    agent?.interaction_fee_usdfc > 0
+  ) {
+    fee = parseFloat(agent.interaction_fee_usdfc);
+    token = "USDC";
+    source = "interaction_fee_usdfc";
+  }
+  // PRIORITY 3: interaction_fee (fallback legacy field)
+  else if (
+    agent?.interaction_fee !== undefined &&
+    agent?.interaction_fee !== null &&
+    !isNaN(agent?.interaction_fee) &&
+    agent?.interaction_fee > 0
+  ) {
+    fee = parseFloat(agent.interaction_fee);
+    token = "USDC";
+    source = "interaction_fee";
+  }
+
+  console.log("🔍 AgentInteractionModal: Service fee display:", {
+    fee,
+    token,
+    agent: agent?.name,
+    source,
+    note: "Using database schema aligned priority logic",
+  });
+  return `${fee} ${token}`;
+};
+
+const getNetworkDisplay = (agent) => {
+  // Log the full agent object for debugging network info
+  console.log("🔍 AgentInteractionModal: Full agent data for network:", {
+    name: agent?.name,
+    deployment_network_name: agent?.deployment_network_name,
+    network: agent?.network,
+    chain_id: agent?.chain_id,
+    deployment_chain_id: agent?.deployment_chain_id,
+    networkToChainIdKeys: Object.keys(networkToChainId),
+    networkFieldType: typeof agent?.network,
+    networkFieldValue: agent?.network,
+    networkMappingExists: agent?.network
+      ? networkToChainId[agent.network]
+      : "N/A",
+    allKeys: agent
+      ? Object.keys(agent).filter(
+          (k) => k.includes("network") || k.includes("chain")
+        )
+      : [],
+  });
+
+  // 🔧 CRITICAL: Use same logic as agent card for network detection
+  // Agent card uses agent.network (string like "polygon-amoy")
+  // Payment modal was using agent.chain_id (which has wrong values)
+  let chainId = null;
+  let networkSource = "unknown";
+
+  // 1. Try agent.network (string) - same as agent card
+  if (agent?.network && networkToChainId[agent.network]) {
+    chainId = networkToChainId[agent.network];
+    networkSource = "agent.network";
+  }
+
+  // 2. Fallback to agent.chain_id (has wrong values but better than nothing)
+  if (!chainId) {
+    chainId = agent?.chain_id || agent?.deployment_chain_id;
+    networkSource = "agent.chain_id";
+  }
+
+  console.log(
+    "🎯 AgentInteractionModal: Chain ID for network (UPDATED FOR POLYGON AMOY):",
+    {
+      agentName: agent?.name,
+      agentNetwork: agent?.network,
+      deployment_chain_id: agent?.deployment_chain_id,
+      chain_id: agent?.chain_id,
+      finalChainId: chainId,
+      networkSource: networkSource,
+      note: "Now using agent.network like agent card - includes Polygon Amoy support",
+    }
+  ); // 🔧 CRITICAL: Database network names are WRONG - always use chain_id
+  // Don't trust: agent?.deployment_network_name || agent?.network
+  let network = "Unknown Network";
+
+  // Use the chainId already declared above
+  if (chainId) {
+    const networkInfo = getNetworkInfo(chainId);
+    network = networkInfo?.name || "Unknown Network";
+    console.log(
+      "🔍 AgentInteractionModal: Using chain_id for network (bypassing DB):",
+      {
+        chainId,
+        networkInfo: networkInfo?.name,
+        agent: agent?.name,
+        skipped_db_network: agent?.deployment_network_name,
+        note: "Database network names are incorrect",
+      }
+    );
+  }
+
+  console.log("🔍 AgentInteractionModal: Final network display:", {
+    network,
+    agent: agent?.name,
+    source: agent?.deployment_network_name
+      ? "deployment_network_name"
+      : agent?.network
+      ? "network"
+      : "evm_service",
+  });
+  return network;
+};
+
+const getAgentWalletAddress = (agent) => {
+  console.log("🔍 AgentInteractionModal: Wallet info for agent:", {
+    name: agent?.name,
+    agent_wallet_address: agent?.agent_wallet_address,
+    owner_wallet: agent?.owner_wallet,
+    deployer_wallet_address: agent?.deployer_wallet_address,
+    user_id: agent?.user_id,
+  });
+
+  // Priority order for agent wallet address:
+  // 1. agent_wallet_address (primary field for agent's wallet)
+  // 2. owner_wallet (backup field)
+  // 3. deployer_wallet_address (fallback)
+  // 4. user_id (legacy fallback - might be wallet address)
+
+  let walletAddress = null;
+  let source = "fallback";
+
+  if (agent?.agent_wallet_address) {
+    walletAddress = agent.agent_wallet_address;
+    source = "agent_wallet_address";
+  } else if (agent?.owner_wallet) {
+    walletAddress = agent.owner_wallet;
+    source = "owner_wallet";
+  } else if (agent?.deployer_wallet_address) {
+    walletAddress = agent.deployer_wallet_address;
+    source = "deployer_wallet_address";
+  } else if (agent?.user_id && agent.user_id.startsWith("0x")) {
+    // Some legacy agents might have wallet address in user_id
+    walletAddress = agent.user_id;
+    source = "user_id (legacy)";
+  }
+
+  console.log("🔍 AgentInteractionModal: Agent wallet resolved:", {
+    walletAddress,
+    source,
+    agent: agent?.name,
+    note: "Currently same as deployer's wallet - will change when agents get individual wallets",
+  });
+
+  return walletAddress || "No wallet configured";
+};
+
+const formatWalletAddress = (address) => {
+  if (!address || address === "No wallet configured") {
+    return address;
+  }
+
+  // Format as shortened address: 0x1234...5678
+  if (address.length > 10) {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
+
+  return address;
+};
+
+const getTokenContractDisplay = (agent) => {
+  // Log the full agent object for debugging chain info
+  console.log("🔍 AgentInteractionModal: Full agent data for contract:", {
+    name: agent?.name,
+    deployment_chain_id: agent?.deployment_chain_id,
+    deployment_network_name: agent?.deployment_network_name,
+    chain_id: agent?.chain_id,
+    network: agent?.network,
+    allKeys: agent
+      ? Object.keys(agent).filter(
+          (k) =>
+            k.includes("chain") ||
+            k.includes("contract") ||
+            k.includes("network")
+        )
+      : [],
+  });
+
+  // 🔧 CRITICAL: Use same logic as getNetworkDisplay for consistency
+  // Use agent.network field (like ModernAgentCard) instead of chain_id
+  let chainId;
+
+  if (agent?.network && networkToChainId[agent.network]) {
+    chainId = networkToChainId[agent.network];
+    console.log("🎯 AgentInteractionModal: Using agent.network for contract:", {
+      agentName: agent?.name,
+      networkField: agent.network,
+      mappedChainId: chainId,
+      source: "agent.network + networkToChainId mapping",
+    });
+  } else {
+    // Fallback to chain_id if network mapping not found
+    chainId = agent?.chain_id || agent?.deployment_chain_id;
+    console.log(
+      "🎯 AgentInteractionModal: Fallback to chain_id for contract:",
+      {
+        agentName: agent?.name,
+        chainId: chainId,
+        source: "fallback chain_id/deployment_chain_id",
+      }
+    );
+  }
+
+  if (!chainId) {
+    console.log(
+      "⚠️ AgentInteractionModal: No chain ID found for agent:",
+      agent?.name
+    );
+    return "Contract not available";
+  }
+
+  const usdcContract = getUSDCContractForChain(chainId);
+
+  if (usdcContract) {
+    // Format: 0x1c7D4B...79C7238
+    const display = `${usdcContract.substring(0, 8)}...${usdcContract.substring(
+      34
+    )}`;
+    console.log("✅ AgentInteractionModal: Token contract display:", {
+      display,
+      chainId: chainId,
+      agent: agent?.name,
+      fullContract: usdcContract,
+    });
+    return display;
+  }
+
+  console.log("⚠️ AgentInteractionModal: No USDC contract for chain:", chainId);
+  return "Contract not available";
+};
 
 const AgentInteractionModal = ({
   agent,
@@ -32,6 +334,7 @@ const AgentInteractionModal = ({
   onClose,
   onPayment,
   onQRScan = null,
+  paymentAmount = null, // 💰 Dynamic payment amount from e-shop/on-ramp
 }) => {
   const [activeTab, setActiveTab] = useState("chat");
   const [messages, setMessages] = useState([]);
@@ -389,13 +692,28 @@ const AgentInteractionModal = ({
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-slate-400">Service Fee:</span>
                       <span className="text-white font-semibold">
-                        10 USBDG+
+                        {getServiceFeeDisplay(agent, paymentAmount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-slate-400">Network:</span>
+                      <span className="text-purple-400">
+                        {getNetworkDisplay(agent)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-slate-400">Receiving Wallet:</span>
+                      <span
+                        className="text-blue-400 font-mono text-sm"
+                        title={getAgentWalletAddress(agent)}
+                      >
+                        {formatWalletAddress(getAgentWalletAddress(agent))}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Network:</span>
-                      <span className="text-purple-400">
-                        BlockDAG Primordial
+                      <span className="text-slate-400">Token Contract:</span>
+                      <span className="text-green-400 font-mono text-sm">
+                        {getTokenContractDisplay(agent)}
                       </span>
                     </div>
                   </div>
@@ -406,7 +724,7 @@ const AgentInteractionModal = ({
                     className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
                   >
                     <QrCode className="w-4 h-4 mr-2" />
-                    Generate Payment QR
+                    Generate Payment
                   </Button>
                   {onQRScan && (
                     <Button
