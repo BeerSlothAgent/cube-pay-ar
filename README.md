@@ -1,239 +1,330 @@
-# CubePay Virtual Terminal - Monorepo
+# NeAR Viewer - Augmented Reality Agent Interaction Platform
 
-A unified codebase for the CubePay virtual terminal payment system, integrating AR viewer, AgentSphere marketplace, E-commerce shop, and On/Off ramp functionality.
+A cutting-edge augmented reality web application that allows users to discover, interact with, and pay AI agents in real-world locations using blockchain technology.
 
-## 🏗️ Repository Structure
+![NeAR Viewer](https://via.placeholder.com/800x400/8b5cf6/ffffff?text=NeAR+Viewer+AR+Platform)
 
-```
-cube-pay-ar/
-├── apps/
-│   ├── ar-viewer/          # Main AR viewer & AgentSphere marketplace
-│   ├── eshop/              # E-commerce shop (submodule)
-│   └── on-off-ramp/        # Payment gateway on/off ramp (submodule)
-├── packages/
-│   ├── shared/             # Shared utilities, types, and components
-│   └── payment-engine/     # Core payment processing engine
-├── docs/                   # Documentation and guides
-└── sql/                    # Database schemas and migrations
-```
+## 🌟 Features
 
-## 📦 Applications
+### 🎥 **Advanced Camera System**
 
-### AR Viewer (`apps/ar-viewer`)
-- **Purpose**: AR-based agent viewer with QR payment integration
-- **Tech Stack**: React, Three.js, Vite
-- **Features**: 
-  - 3D agent visualization
-  - AR QR code scanning
-  - AgentSphere marketplace
-  - Multi-chain wallet integration (EVM, Solana, Hedera)
-  - Payment modal with QR code generation
+- **Live camera feed** with retry logic for maximum compatibility
+- **Full-screen AR view** with professional overlay elements
+- **Cross-platform support** for desktop and mobile devices
+- **Intelligent error handling** with progressive fallback constraints
 
-### E-shop (`apps/eshop`)
-- **Purpose**: E-commerce storefront with crypto payments
-- **Tech Stack**: React, TypeScript, Vite
-- **Integration**: Uses CubePay virtual terminal for checkout
+### 🛰️ **RTK-Enhanced Location Services**
 
-### On/Off Ramp (`apps/on-off-ramp`)
-- **Purpose**: Fiat to crypto conversion gateway
-- **Integration**: Payment processing for fiat transactions
+- **Geodnet RTK integration** for centimeter-level GPS accuracy
+- **Real-time positioning** with altitude and precision data
+- **Fallback systems** for standard GPS when RTK unavailable
+- **Location status indicators** showing accuracy and source
 
-## 🚀 Getting Started
+### 🤖 **AR Agent Interactions**
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Git
+- **Interactive agent overlays** positioned on live camera feed
+- **Smart positioning algorithm** distributing agents across view
+- **Real-time chat system** with contextual AI responses
+- **Voice and video call simulation** for immersive interactions
+- **Agent type classification** (Assistant, Creator, Services, Tutor, Game)
 
-### Installation
+### 💰 **Blockchain Integration**
 
-1. **Clone the repository with submodules:**
-```bash
-git clone --recursive https://github.com/BeerSlothAgent/cube-pay-ar.git
-cd cube-pay-ar
-```
+- **ThirdWeb wallet connection** with social login options
+- **MetaMask integration** for seamless crypto transactions
+- **Multi-chain support** - 5+ blockchain networks
+- **USDC stablecoin payments** across EVM testnets
+- **QR code generation** for mobile wallet compatibility
+- **Auto-chain detection** and switching
 
-2. **Install dependencies for all apps:**
-```bash
-npm run install:all
-```
+### 🌐 **Supported EVM Testnets & USDC Contracts**
 
-Or install individually:
-```bash
-# AR Viewer
-cd apps/ar-viewer && npm install
+| Chain         | Network Name     | Chain ID | USDC Contract Address                        | Explorer                                                               |
+| ------------- | ---------------- | -------- | -------------------------------------------- | ---------------------------------------------------------------------- |
+| **Ethereum**  | Sepolia          | 11155111 | `0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238` | [sepolia.etherscan.io](https://sepolia.etherscan.io)                   |
+| **Arbitrum**  | Arbitrum Sepolia | 421614   | `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` | [sepolia-explorer.arbitrum.io](https://sepolia-explorer.arbitrum.io)   |
+| **Base**      | Base Sepolia     | 84532    | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` | [sepolia-explorer.base.org](https://sepolia-explorer.base.org)         |
+| **Optimism**  | OP Sepolia       | 11155420 | `0x5fd84259d66Cd46123540766Be93DFE6D43130D7` | [sepolia-optimism.etherscan.io](https://sepolia-optimism.etherscan.io) |
+| **Avalanche** | Fuji Testnet     | 43113    | `0x5425890298aed601595a70AB815c96711a31Bc65` | [testnet.snowtrace.io](https://testnet.snowtrace.io)                   |
 
-# E-shop
-cd apps/eshop && npm install
+### 🔗 **Additional Blockchain Networks**
 
-# On/Off Ramp
-cd apps/on-off-ramp && npm install
-```
+| Chain        | Network            | Token  | Amount    | Chain ID |
+| ------------ | ------------------ | ------ | --------- | -------- |
+| **BlockDAG** | Primordial Testnet | USBDG+ | 50 tokens | 1043     |
+| **Morph**    | Holesky Testnet    | USDT   | 1 token   | 2810     |
+| **Solana**   | Testnet            | SOL    | 1 token   | -        |
+| **Solana**   | Devnet             | USDC   | 1 token   | -        |
+| **Hedera**   | Testnet            | HBAR   | 1 token   | -        |
 
-### Development
+### 💡 **Payment Features**
 
-Run individual applications:
+- **🎯 Revolutionary 3D Cube Interface** - Interactive floating payment system
+- **🔄 Auto-chain Detection** - Automatically detects user's wallet chain
+- **💱 Smart Chain Selection** - Uses supported chain or suggests alternatives
+- **📱 Universal QR Codes** - Compatible with MetaMask, Coinbase Wallet, and more
+- **🔐 Secure Transactions** - EIP-681 standard for safe payments
+- **⚡ Instant Processing** - Real-time transaction monitoring
 
-```bash
-# AR Viewer
-npm run dev:ar-viewer
+### 🗄️ **Database Connectivity**
 
-# E-shop
-npm run dev:eshop
+- **Supabase integration** for real-time agent data
+- **43+ agents** loaded from live database
+- **GPS coordinate mapping** for accurate AR positioning
+- **Dynamic agent discovery** based on user location
 
-# On/Off Ramp
-npm run dev:on-off-ramp
-```
+## 🚀 **Technology Stack**
 
-### Building
+### **Frontend**
 
-Build all applications:
-```bash
-npm run build:all
-```
+- **React 19** - Modern UI framework
+- **Vite** - Fast build tool and dev server
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Professional component library
+- **Lucide React** - Beautiful icon system
 
-Or build individually:
-```bash
-npm run build:ar-viewer
-npm run build:eshop
-npm run build:on-off-ramp
-```
+### **Blockchain**
 
-## 🔧 Configuration
+- **ThirdWeb SDK** - Web3 development platform
+- **MetaMask** - Ethereum wallet integration
+- **BlockDAG Network** - High-performance blockchain
+- **EIP-681** - Payment URI standard
 
-### Environment Variables
+### **Location Services**
 
-Each application has its own `.env` file:
+- **Geodnet RTK** - Real-time kinematic positioning
+- **Web Geolocation API** - Standard GPS fallback
+- **NTRIP Protocol** - RTK correction data streaming
 
-- `apps/ar-viewer/.env` - Supabase, wallet configs
-- `apps/eshop/.env` - Shop API keys
-- `apps/on-off-ramp/.env` - Payment gateway credentials
+### **Database**
 
-See `.env.example` in each app directory.
+- **Supabase** - Real-time PostgreSQL database
+- **Real-time subscriptions** - Live data updates
+- **Row Level Security** - Secure data access
 
-## 🏛️ Architecture
+## 📦 **Installation**
 
-### Monorepo Benefits
-- **Unified development**: Make changes across all apps in a single branch
-- **Atomic commits**: Commit related changes together
-- **Shared packages**: Reuse code via `packages/`
-- **Simplified CI/CD**: Build and deploy all apps together
+### **Prerequisites**
 
-### Integration Points
+- Node.js 18+
+- pnpm (recommended) or npm
+- Modern web browser with camera support
 
-The virtual terminal integrates across all apps:
-- **Payment Engine**: Shared across all applications
-- **QR Generation**: Used by AR viewer and e-shop
-- **Wallet Connect**: Unified wallet connection logic
-- **Database**: Shared Supabase instance for agent data
-
-## 📚 Documentation
-
-- [API Documentation](./docs/API_Documentation.md)
-- [Database Schemas](./docs/Schemas.md)
-- [Backend Integration](./docs/Backend.md)
-- [Changelog](./docs/Changelog.md)
-
-## 🔄 Submodules
-
-This repo uses git submodules for `eshop` and `on-off-ramp`:
+### **Setup**
 
 ```bash
-# Update submodules
-git submodule update --remote
+# Clone the repository
+git clone https://github.com/your-username/ar-viewer-web.git
+cd ar-viewer-web
 
-# Initialize submodules (if cloned without --recursive)
-git submodule init
-git submodule update
+# Install dependencies
+pnpm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your credentials
 ```
 
-## 🛠️ Tech Stack
+### **Environment Variables**
 
-- **Frontend**: React 19, Vite
-- **3D/AR**: Three.js, React Three Fiber
-- **Blockchain**: 
-  - EVM: ThirdWeb, ethers.js
-  - Solana: @solana/web3.js
-  - Hedera: Hashpack integration
-- **Database**: Supabase
-- **Styling**: Tailwind CSS, Radix UI
-- **QR Codes**: qrcode.react
+```env
+# Supabase Configuration
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-## 🔗 Chainlink CCIP Routes
+# ThirdWeb Configuration
+VITE_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
+VITE_THIRDWEB_SECRET_KEY=your_thirdweb_secret_key
 
-### Supported Cross-Chain Routes
+# RTK Geodnet Configuration
+VITE_RTK_HOST=rtk.geodnet.com
+VITE_RTK_PORT=2101
+VITE_RTK_MOUNTPOINT=AUTO
+VITE_RTK_USERNAME=your_geodnet_username
+VITE_RTK_PASSWORD=your_geodnet_password
 
-CubePay supports Chainlink CCIP for secure cross-chain transfers across the following networks:
-
-| Source Network | Destination Network | CCIP Router Address | Status |
-|----------------|---------------------|---------------------|---------|
-| Ethereum Sepolia | Polygon Amoy | `0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59` | ✅ Active |
-| Polygon Amoy | Ethereum Sepolia | `0x9C32fCB86BF0f4a1A8921a9Fe46de3198bb884B2` | ✅ Active |
-| Avalanche Fuji | Ethereum Sepolia | `0xF694E193200268f9a4868e4Aa017A0118C9a8177` | ✅ Active |
-| Ethereum Sepolia | Avalanche Fuji | `0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59` | ✅ Active |
-| Arbitrum Sepolia | Ethereum Sepolia | `0x2a9C5afB0d0e4BAb2BCdaE109EC4b0c4Be15a165` | ✅ Active |
-| Base Sepolia | Ethereum Sepolia | `0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93` | ✅ Active |
-| Optimism Sepolia | Ethereum Sepolia | `0x114A20A10b43D4115e5aeef7345a1A71d2a60C57` | ✅ Active |
-
-### CCIP Chain Selectors
-
-```javascript
-const CCIP_CHAIN_SELECTORS = {
-  ETHEREUM_SEPOLIA: "16015286601757825753",
-  POLYGON_AMOY: "16281711391670634445",
-  AVALANCHE_FUJI: "14767482510784806043",
-  ARBITRUM_SEPOLIA: "3478487238524512106",
-  BASE_SEPOLIA: "10344971235874465080",
-  OPTIMISM_SEPOLIA: "5224473277236331295"
-};
+# Assembly AI (for voice features)
+VITE_ASSEMBLY_AI_API_KEY=your_assembly_ai_key
 ```
 
-## 💰 USDC Contract Addresses
+### **Development**
 
-### Testnet Contracts
+```bash
+# Start development server
+pnpm run dev
 
-| Network | USDC Contract Address | Decimals |
-|---------|----------------------|----------|
-| **Ethereum Sepolia** | `0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238` | 6 |
-| **Polygon Amoy** | `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` | 6 |
-| **Avalanche Fuji** | `0x5425890298aed601595a70AB815c96711a31Bc65` | 6 |
-| **Arbitrum Sepolia** | `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` | 6 |
-| **Base Sepolia** | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` | 6 |
-| **Optimism Sepolia** | `0x5fd84259d66Cd46123540766Be93DFE6D43130D7` | 6 |
+# Build for production
+pnpm run build
 
-### Mainnet Contracts
+# Preview production build
+pnpm run preview
+```
 
-| Network | USDC Contract Address | Decimals |
-|---------|----------------------|----------|
-| **Ethereum Mainnet** | `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` | 6 |
-| **Polygon** | `0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359` | 6 |
-| **Avalanche C-Chain** | `0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E` | 6 |
-| **Arbitrum One** | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831` | 6 |
-| **Base** | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` | 6 |
-| **Optimism** | `0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85` | 6 |
+## 🎯 **Usage**
 
-### Additional Supported Networks
+### **Getting Started**
 
-| Network | USDC Contract Address | Decimals |
-|---------|----------------------|----------|
-| **Solana Devnet** | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` | 6 |
-| **Solana Mainnet** | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | 6 |
-| **Hedera Testnet** | `0.0.429274` | 6 |
-| **Hedera Mainnet** | `0.0.456858` | 6 |
+1. **Open the application** in a modern web browser
+2. **Allow location access** for GPS positioning
+3. **Grant camera permissions** for AR functionality
+4. **Wait for initialization** (Location → Camera → Database)
 
-> **Note**: Always verify contract addresses before making transactions. USDC uses 6 decimals across all networks.
+### **AR Agent Interaction**
 
-## 🤝 Contributing
+1. **Start the camera** using the "Start Camera" button
+2. **Look for colored agent markers** overlaid on the camera feed
+3. **Tap any agent** to open the interaction modal
+4. **Choose interaction type**: Chat, Voice, Video, or Payment
 
-1. Create a feature branch
-2. Make your changes
-3. Commit with descriptive messages
-4. Push and create a pull request
+### **Wallet Connection**
 
-## 📄 License
+1. **Navigate to Wallet tab** in the main interface
+2. **Click "Connect Wallet"** to open connection modal
+3. **Choose connection method**: MetaMask, Social Login, or Email
+4. **Complete authentication** process
+5. **Start making payments** to agents with USDFC tokens
 
-MIT License - see LICENSE file for details
+### **RTK Location Enhancement**
 
-## 👥 Team
+- **Automatic RTK detection** when Geodnet credentials configured
+- **Real-time accuracy display** showing positioning precision
+- **Altitude information** included in location data
+- **Fallback to standard GPS** when RTK unavailable
 
-BeerSlothAgent - [GitHub](https://github.com/BeerSlothAgent)
+## 🏗️ **Architecture**
+
+### **Component Structure**
+
+```
+src/
+├── components/
+│   ├── ARViewer.jsx              # Main application component
+│   ├── CameraView.jsx            # Camera feed and controls
+│   ├── ARAgentOverlay.jsx        # Agent positioning and display
+│   ├── AgentInteractionModal.jsx # Chat and interaction interface
+│   ├── ThirdWebWalletConnect.jsx # Wallet connection UI
+│   └── PaymentQRModal.jsx        # QR code payment interface
+├── hooks/
+│   └── useDatabase.js            # Supabase database integration
+├── services/
+│   └── rtkLocation.js            # RTK positioning service
+├── providers/
+│   └── ThirdWebProvider.jsx     # Blockchain provider wrapper
+└── config/
+    └── blockdag-chain.js         # Blockchain network configuration
+```
+
+### **Data Flow**
+
+1. **Location Service** → RTK-enhanced GPS coordinates
+2. **Database Service** → Agent data with GPS positions
+3. **AR Overlay** → Positioned agents on camera feed
+4. **Interaction System** → Chat, voice, video, payments
+5. **Blockchain** → Wallet connection and transactions
+
+## 🔧 **Configuration**
+
+### **Supabase Database Schema**
+
+```sql
+-- Agents table
+CREATE TABLE agents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  agent_type TEXT NOT NULL,
+  description TEXT,
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
+  altitude DECIMAL(8, 2),
+  distance_meters INTEGER,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### **BlockDAG Network**
+
+- **Chain ID**: 1043
+- **Network Name**: BlockDAG Primordial Testnet
+- **RPC URL**: https://rpc-testnet.blockdag.org
+- **Explorer**: https://explorer-testnet.blockdag.org
+- **Native Token**: BDAG
+
+### **RTK Configuration**
+
+- **Provider**: Geodnet
+- **Protocol**: NTRIP
+- **Accuracy**: 2cm (when RTK signal available)
+- **Coverage**: Global RTK correction network
+
+## 🚀 **Deployment**
+
+### **Branch Structure**
+
+- **`main`** - Stable release with full AR system
+- **`Cube-Crypto-QR`** - Development branch for enhanced crypto payments
+
+### **3D Cube Payment Development**
+
+The `Cube-Crypto-QR` branch contains the revolutionary 3D floating payment cube interface with:
+
+- **🎯 Interactive 3D Cube** - 6 payment method faces with click/touch support
+- **📱 Enhanced Crypto QR** - Direct AR QR display without modals
+- **🔄 Chain Autodetection** - Automatically detects and uses optimal blockchain
+- **💰 USDC Focus** - Simplified payments using USDC across all EVM chains
+- **🌟 AR Integration** - QR codes appear directly in AR space
+
+### **Static Hosting**
+
+```bash
+# Build for production
+pnpm run build
+
+# Deploy dist/ folder to your hosting provider
+# Supports: Vercel, Netlify, GitHub Pages, etc.
+```
+
+### **Environment Setup**
+
+- Configure environment variables in hosting platform
+- Ensure HTTPS for camera and location access
+- Set up proper CORS headers for API access
+
+## 🤝 **Contributing**
+
+### **Development Workflow**
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+### **Code Standards**
+
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **React best practices** for component development
+- **Responsive design** for mobile compatibility
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 **Acknowledgments**
+
+- **ThirdWeb** - Web3 development platform
+- **Supabase** - Real-time database infrastructure
+- **Geodnet** - RTK positioning network
+- **shadcn/ui** - Beautiful component library
+- **Tailwind CSS** - Utility-first CSS framework
+
+## 📞 **Support**
+
+- **Documentation**: [docs.NeAR-viewer.app](https://docs.NeAR-viewer.app)
+- **Issues**: [GitHub Issues](https://github.com/your-username/ar-viewer-web/issues)
+- **Discord**: [NeAR Viewer Community](https://discord.gg/NeAR-viewer)
+- **Email**: support@NeAR-viewer.app
+
+---
+
+**Built with ❤️ for the future of augmented reality and blockchain interaction**
