@@ -76,12 +76,12 @@
       http-equiv="Content-Security-Policy"
       content="
       default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://cdn.jsdelivr.net https://unpkg.com https://*.thirdweb.com https://*.walletconnect.com https://*.walletconnect.org https://*.sentry.io;
+      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://*.thirdweb.com https://*.walletconnect.com https://*.walletconnect.org https://*.sentry.io;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: blob: https: http:;
       media-src 'self' blob: mediastream: data:;
-      connect-src 'self' blob: https: wss: ws: https://*.thirdweb.com https://*.walletconnect.com https://*.walletconnect.org https://*.sentry.io https://*.supabase.co https://*.supabase.io;
+      connect-src 'self' https: wss: ws: https://*.thirdweb.com https://*.walletconnect.com https://*.walletconnect.org https://*.sentry.io https://*.supabase.co https://*.supabase.io;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       frame-src 'self' https://*.thirdweb.com https://*.walletconnect.com;
@@ -106,15 +106,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module">
-      // Critical Buffer polyfill - must load FIRST
-      import { Buffer } from "buffer";
-      window.Buffer = Buffer;
-      globalThis.Buffer = Buffer;
-      if (!globalThis.process) {
-        globalThis.process = { env: {} };
-      }
-    </script>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

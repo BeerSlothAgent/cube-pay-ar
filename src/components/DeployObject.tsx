@@ -132,7 +132,9 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
   const [deploymentError, setDeploymentError] = useState("");
 
   // Agent wallet = User connected wallet (same address)
-  const agentWallet = address || "0x000...000";
+  // Use Solana wallet address if connected, otherwise use EVM address
+  const agentWallet =
+    solanaWallet?.publicKey?.toString() || address || "0x000...000";
 
   // USDC token contract address on Base Sepolia
   // USDC contract addresses for different networks
@@ -670,7 +672,10 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            Authorization: `Bearer ${
+              import.meta.env.VITE_SUPABASE_ANON_JWT ||
+              import.meta.env.VITE_SUPABASE_ANON_KEY
+            }`,
           },
           body: JSON.stringify({
             latitude: location.latitude,
@@ -680,7 +685,11 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.warn(
+          `⚠️ RTK service unavailable (${response.status}). Continuing with standard GPS.`
+        );
+        setRtkLoading(false);
+        return; // Continue without RTK
       }
 
       const data = await response.json();
@@ -697,8 +706,10 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
 
       console.log("🎯 RTK enhanced location:", data);
     } catch (error) {
-      console.error("❌ RTK correction failed:", error);
-      alert("RTK correction failed. Using standard GPS location.");
+      console.warn(
+        "⚠️ RTK correction unavailable, using standard GPS location"
+      );
+      // Don't show alert - RTK is optional enhancement
     } finally {
       setRtkLoading(false);
     }
@@ -748,7 +759,8 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
       (method) => paymentMethods[method]?.enabled
     );
 
-    if (hasCryptoEnabled && !address) {
+    // Check for either EVM or Solana wallet
+    if (hasCryptoEnabled && !address && !solanaWallet?.publicKey) {
       errors.push("Wallet connection required for crypto payment methods");
     }
 
@@ -916,7 +928,8 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
       return;
     }
 
-    if (!address) {
+    // Check for either EVM or Solana wallet
+    if (!address && !solanaWallet?.publicKey) {
       alert("Please connect your wallet first.");
       return;
     }
@@ -952,7 +965,7 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
       }
 
       const deploymentData = {
-        user_id: address,
+        user_id: solanaWallet?.publicKey?.toString() || address,
         name: agentName.trim(),
         description:
           agentDescription.trim() ||
@@ -972,11 +985,20 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
         range_meters: visibilityRange,
 
         // DYNAMIC NETWORK DATA - FIXED
-        deployment_network_name: currentNetwork.name, // "Ethereum Sepolia"
-        deployment_chain_id: currentNetwork.chainId, // 11155111
-        deployment_network_id: currentNetwork.chainId, // 11155111
-        network: currentNetwork.name, // "Ethereum Sepolia" - Fixed to use full name
-        chain_id: currentNetwork.chainId, // 11155111
+        deployment_network_name: currentNetwork.name, // "Ethereum Sepolia" or "Solana Devnet"
+        deployment_chain_id:
+          typeof currentNetwork.chainId === "number"
+            ? currentNetwork.chainId
+            : null, // 11155111 or null for Solana
+        deployment_network_id:
+          typeof currentNetwork.chainId === "number"
+            ? currentNetwork.chainId
+            : null, // 11155111 or null for Solana (changed from string)
+        network: currentNetwork.name, // "Ethereum Sepolia" or "Solana Devnet"
+        chain_id:
+          typeof currentNetwork.chainId === "number"
+            ? currentNetwork.chainId
+            : null, // 11155111 or null for Solana
 
         // DYNAMIC PAYMENT DATA - FIXED
         interaction_fee_amount: parseFloat(interactionFee.toString()), // 10.0
@@ -984,16 +1006,20 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
         interaction_fee_usdfc: interactionFee, // Legacy field
 
         // Wallet configuration
-        owner_wallet: address,
+        owner_wallet: solanaWallet?.publicKey?.toString() || address,
         agent_wallet_address: agentWallet,
-        agent_wallet_type: "evm_wallet",
-        deployer_address: address,
+        agent_wallet_type: solanaWallet?.publicKey
+          ? "solana_wallet"
+          : "evm_wallet",
+        deployer_address: solanaWallet?.publicKey?.toString() || address,
 
         // Token information
         currency_type: selectedToken,
         token_symbol: selectedToken,
-        token_address:
-          TOKEN_ADDRESSES[selectedToken as keyof typeof TOKEN_ADDRESSES] || "",
+        token_address: solanaWallet?.publicKey
+          ? "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU" // Solana USDC Devnet mint
+          : TOKEN_ADDRESSES[selectedToken as keyof typeof TOKEN_ADDRESSES] ||
+            "",
 
         // Communication features
         chat_enabled: textChat,
@@ -1011,7 +1037,7 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
 
         // DYNAMIC PAYMENT CONFIG - FIXED
         payment_config: {
-          wallet_address: address,
+          wallet_address: solanaWallet?.publicKey?.toString() || address,
           supported_tokens: [selectedToken],
           network_info: {
             name: currentNetwork.name,
@@ -1141,9 +1167,18 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
       }, 3000);
     } catch (error) {
       console.error("❌ Deployment failed:", error);
-      setDeploymentError(
-        error instanceof Error ? error.message : "Deployment failed"
-      );
+      console.error("❌ Full error details:", JSON.stringify(error, null, 2));
+
+      // Extract detailed error message
+      let errorMessage = "Deployment failed";
+      if (error && typeof error === "object") {
+        if ("message" in error) errorMessage = (error as any).message;
+        if ("details" in error)
+          console.error("Error details:", (error as any).details);
+        if ("hint" in error) console.error("Error hint:", (error as any).hint);
+      }
+
+      setDeploymentError(errorMessage);
     } finally {
       setIsDeploying(false);
     }
@@ -1158,9 +1193,35 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
     }
   }, [address, currentNetwork]);
 
+  // Detect and connect to Phantom wallet if already connected
+  useEffect(() => {
+    const checkPhantomWallet = () => {
+      if (typeof window !== "undefined" && (window as any).solana) {
+        const phantom = (window as any).solana;
+        if (phantom.isPhantom && phantom.isConnected && phantom.publicKey) {
+          console.log(
+            "✅ Phantom wallet detected and connected:",
+            phantom.publicKey.toString()
+          );
+          setSolanaWallet(phantom);
+          setWalletType("phantom");
+        }
+      }
+    };
+
+    // Check immediately
+    checkPhantomWallet();
+
+    // Also check periodically in case wallet connects after page load
+    const interval = setInterval(checkPhantomWallet, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Network detection when wallet connects
   useEffect(() => {
     const initializeNetwork = async () => {
+      // Check for EVM wallet
       if (address && window.ethereum) {
         setNetworkLoading(true);
         setNetworkError("");
@@ -1206,6 +1267,32 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
         } finally {
           setNetworkLoading(false);
         }
+      }
+      // Check for Solana wallet
+      else if (solanaWallet && solanaWallet.publicKey) {
+        setNetworkLoading(true);
+        setNetworkError("");
+
+        try {
+          // Set Solana Devnet as current network
+          const solanaNetwork = {
+            name: "Solana Devnet",
+            shortName: "Solana",
+            chainId: "devnet",
+            type: "Solana",
+            isSupported: true,
+            rpcUrl: "https://api.devnet.solana.com",
+            explorerUrl: "https://explorer.solana.com/?cluster=devnet",
+          };
+
+          setCurrentNetwork(solanaNetwork);
+          console.log("✅ Solana Devnet network set as current network");
+        } catch (error) {
+          console.error("Solana network detection failed:", error);
+          setNetworkError("Failed to detect Solana network.");
+        } finally {
+          setNetworkLoading(false);
+        }
       } else {
         setCurrentNetwork(null);
         setNetworkError("");
@@ -1213,7 +1300,7 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
     };
 
     initializeNetwork();
-  }, [address]);
+  }, [address, solanaWallet]);
 
   // Update selected token when network changes
   useEffect(() => {
@@ -1932,7 +2019,9 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
                       Your Connected Wallet
                     </label>
                     <div className="bg-white p-3 rounded border font-mono text-sm">
-                      {address || "Not connected"}
+                      {solanaWallet?.publicKey?.toString() ||
+                        address ||
+                        "Not connected"}
                     </div>
                   </div>
                 </div>
@@ -1997,40 +2086,80 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Interaction Fee (Dynamic Amount)
+                    Interaction Fee{" "}
+                    {agentType === "payment_terminal" ||
+                    agentType === "trailing_payment_terminal"
+                      ? "(Dynamic Amount)"
+                      : ""}
                   </label>
-                  <input
-                    type="number"
-                    value={interactionFee}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value);
-                      setInteractionFee(
-                        isNaN(value) || value <= 0 ? 10 : value
-                      );
-                    }}
-                    min="0.1"
-                    step="0.1"
-                    placeholder="Enter fee amount (integer only)"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This exact amount will be stored and displayed in agent
-                    cards
-                  </p>
+                  {agentType === "payment_terminal" ||
+                  agentType === "trailing_payment_terminal" ? (
+                    <div className="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800 font-medium">
+                        💰 Dynamic Amount from Merchant
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Payment terminals accept variable amounts from merchants
+                        (e-shops, on-ramps, etc.). The amount is set per
+                        transaction, not fixed.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="number"
+                        value={interactionFee}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value);
+                          setInteractionFee(
+                            isNaN(value) || value <= 0 ? 10 : value
+                          );
+                        }}
+                        min="0.1"
+                        step="0.1"
+                        placeholder="Enter fee amount (integer only)"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        This exact amount will be stored and displayed in agent
+                        cards
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Revenue Sharing ({revenueSharing}% to you)
+                    Revenue Sharing{" "}
+                    {agentType === "payment_terminal" ||
+                    agentType === "trailing_payment_terminal"
+                      ? "(100% to you)"
+                      : `(${revenueSharing}% to you)`}
                   </label>
-                  <input
-                    type="range"
-                    min="50"
-                    max="90"
-                    value={revenueSharing}
-                    onChange={(e) => setRevenueSharing(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
+                  {agentType === "payment_terminal" ||
+                  agentType === "trailing_payment_terminal" ? (
+                    <div className="w-full px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800 font-medium">
+                        ✓ 100% Revenue - No Platform Fee
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Payment terminal agents receive 100% of payment amounts.
+                        AgentSphere does not take a platform fee on terminal
+                        transactions.
+                      </p>
+                    </div>
+                  ) : (
+                    <input
+                      type="range"
+                      min="50"
+                      max="90"
+                      value={revenueSharing}
+                      onChange={(e) =>
+                        setRevenueSharing(Number(e.target.value))
+                      }
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -2079,7 +2208,9 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
             <div className="space-y-6">
               <PaymentMethodsSelector
                 onPaymentMethodsChange={handlePaymentMethodsChange}
-                connectedWallet={address}
+                connectedWallet={
+                  agentWallet !== "0x000...000" ? agentWallet : null
+                }
                 initialMethods={paymentMethods}
               />
 
@@ -2131,7 +2262,7 @@ const DeployObject = ({ supabase }: DeployObjectProps) => {
                 onClick={deployAgent}
                 disabled={
                   isDeploying ||
-                  !address ||
+                  (!address && !solanaWallet?.publicKey) || // Allow either EVM or Solana wallet
                   !agentName.trim() ||
                   !location ||
                   !currentNetwork ||

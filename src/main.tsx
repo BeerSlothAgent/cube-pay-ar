@@ -1,5 +1,20 @@
-import { createRoot } from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { BrowserRouter } from "react-router-dom";
+import { ThirdwebProvider } from "@thirdweb-dev/react";
+import { Ethereum } from "@thirdweb-dev/chains";
 
-createRoot(document.getElementById("root")!).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <ThirdwebProvider
+      clientId={import.meta.env.VITE_THIRDWEB_CLIENT_ID}
+      activeChain={Ethereum}
+    >
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ThirdwebProvider>
+  </React.StrictMode>
+);
