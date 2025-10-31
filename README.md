@@ -11,14 +11,18 @@ CubePay AR is a revolutionary Spatial Augmented Finance Application that transfo
 ## 💎 **Revolutionary Payment Features**
 
 ### **1. Virtual Terminal Payments** 🖥️
+
 Merchants can deploy their own **virtual payment terminals** directly through AR, eliminating the need for physical card readers or POS devices. Each terminal is:
+
 - Deployed instantly via QR code scanning
 - Accessible in augmented reality through any smartphone
 - Capable of processing crypto and fiat payments
 - Fully customizable with merchant branding
 
 ### **2. Revolut Bank Integration** 🏦
+
 Seamless bank QR payment processing through **Revolut Business API**:
+
 - **Bank QR Payments**: Generate instant QR codes for direct bank transfers
 - **Virtual Card Payments**: Dynamic virtual card generation for online transactions
 - **No Physical Devices Required**: All payments processed through virtual terminals
@@ -26,7 +30,9 @@ Seamless bank QR payment processing through **Revolut Business API**:
 - **Multi-Currency Support**: Accept payments in multiple fiat currencies
 
 ### **3. Cross-Chain Crypto Payments** ⛓️
+
 Native cryptocurrency payment support across multiple blockchain networks:
+
 - **EVM Networks**: Ethereum, Polygon, Base, Avalanche, Arbitrum, Optimism, Morph
 - **Solana**: High-speed SPL token payments
 - **Hedera**: Enterprise-grade HBAR and token transfers
@@ -34,14 +40,18 @@ Native cryptocurrency payment support across multiple blockchain networks:
 - **Multi-Wallet Support**: MetaMask, WalletConnect, Phantom, HashPack
 
 ### **4. Cross-Platform Payment Processing** 🌐
+
 Universal payment acceptance across all platforms:
+
 - **Web**: Full desktop and mobile web support
 - **Mobile AR**: Native AR experience on iOS and Android
 - **Progressive Web App**: Installable mobile experience
 - **QR Code Integration**: Instant payment links accessible anywhere
 
 ### **5. Revolutionary Tokenization Alternative** 🔄
+
 **Replacing Traditional Card Tokenization** - Instead of storing sensitive card data:
+
 - Merchants deploy their own **virtual terminals** in AR space
 - Payments redirect to user's **personally deployed terminal**
 - Users control their payment flow through their own infrastructure
@@ -49,7 +59,9 @@ Universal payment acceptance across all platforms:
 - Complete payment sovereignty and security
 
 ### **6. Device-Free Merchant Operations** 📱
+
 Merchants operate **without any physical payment devices**:
+
 - No card readers required
 - No POS terminals to maintain
 - No hardware costs or maintenance
@@ -57,7 +69,9 @@ Merchants operate **without any physical payment devices**:
 - All operations managed through smartphone or web browser
 
 ### **7. Dynamic Fee Structure** 💰
+
 Transparent, flexible fee system:
+
 - **Deployment Fees**: One-time AR agent/terminal deployment
 - **Interaction Fees**: Per-transaction processing fees
 - **Cross-Chain Fees**: CCIP bridge fees for cross-chain transfers
@@ -100,6 +114,7 @@ Transparent, flexible fee system:
 ## 🎯 **Complete Feature Set**
 
 ### **Core Capabilities:**
+
 - ✅ Full-stack web application with React + TypeScript
 - ✅ Supabase database for real-time payment tracking
 - ✅ AR/QR code payment terminal deployment
@@ -160,11 +175,13 @@ Transparent, flexible fee system:
 ### **For Merchants:**
 
 1. **Deploy Virtual Terminal** 🖥️
+
    - Scan QR code or use web interface
    - Terminal appears in AR at your location
    - Customize branding and payment options
 
 2. **Accept Payments** 💳
+
    - Share terminal QR code with customers
    - Accept crypto or fiat payments instantly
    - No physical devices needed
@@ -177,11 +194,13 @@ Transparent, flexible fee system:
 ### **For Customers:**
 
 1. **Scan QR Code** 📱
+
    - Point camera at merchant's payment QR
    - View terminal in AR (optional)
    - See payment details and fees
 
 2. **Choose Payment Method** 💰
+
    - Crypto: Select blockchain and token
    - Fiat: Use Revolut bank QR or virtual card
    - Cross-chain: CCIP transfers between networks
@@ -194,16 +213,19 @@ Transparent, flexible fee system:
 ## 💳 **Supported Payment Methods**
 
 ### **Cryptocurrency:**
+
 - **USDC**: EVM networks, Solana
 - **Native Tokens**: ETH, MATIC, SOL, HBAR, etc.
 - **ERC-20/SPL Tokens**: All standard tokens supported
 
 ### **Fiat (via Revolut):**
+
 - **Bank Transfer**: QR code direct bank payments
 - **Virtual Cards**: Dynamic card generation for online payments
 - **Multiple Currencies**: EUR, USD, GBP, and more
 
 ### **Cross-Chain:**
+
 - **CCIP Transfers**: Seamless USDC transfers across chains
 - **Multi-Network**: Send from one chain, receive on another
 - **Automatic Bridging**: Chainlink CCIP handles the routing
@@ -211,6 +233,7 @@ Transparent, flexible fee system:
 ## 🌐 **Supported Blockchain Networks**
 
 ### **EVM-Compatible Networks:**
+
 ```javascript
 // Production Networks
 Ethereum Mainnet
@@ -229,10 +252,12 @@ Morph Holesky Testnet
 ```
 
 ### **Non-EVM Networks:**
+
 - **Solana Devnet/Mainnet**: High-speed SPL token payments
 - **Hedera**: Enterprise-grade HBAR and HTS token support
 
 ### **CCIP Cross-Chain Routes:**
+
 ```javascript
 // Supported USDC Bridge Routes
 Polygon Amoy ↔ Base Sepolia
@@ -250,6 +275,7 @@ Arbitrum Sepolia: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 ## 🔐 **Security & Privacy Features**
 
 ### **Payment Security:**
+
 - ✅ **No Card Data Storage**: Virtual terminals eliminate tokenization needs
 - ✅ **User-Controlled Flow**: Payments redirect to user's own terminals
 - ✅ **Blockchain Transparency**: All crypto transactions on-chain and verifiable
@@ -257,6 +283,7 @@ Arbitrum Sepolia: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 - ✅ **Encrypted Communication**: End-to-end encryption for all payment data
 
 ### **Privacy Protection:**
+
 - ✅ **Decentralized Infrastructure**: No central payment processor
 - ✅ **Minimal Data Collection**: Only essential transaction information stored
 - ✅ **User Sovereignty**: Complete control over payment terminals and data
@@ -265,30 +292,34 @@ Arbitrum Sepolia: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 ## 🎯 **Use Cases**
 
 ### **Retail & Commerce:**
+
 - Pop-up shops and market vendors
 - Street food and mobile vendors
 - Event ticketing and merchandise
 - Service-based businesses
 
 ### **Digital & Remote:**
+
 - E-commerce checkout integration
 - Subscription and recurring payments
 - Digital content and NFT sales
 - International remittances
 
 ### **Enterprise:**
+
 - B2B payment processing
 - Multi-location retail chains
 - Franchise payment systems
 - Cross-border transactions
-    │ • Landing   │  │ • NEAR Smart    │  │ • AR Camera     │
-    │ • Landing   │  │ • Smart         │  │ • AR Camera     │
-    │ • UI/UX     │  │   Contracts     │  │ • WebXR         │
-    │ • Auth      │  │ • Filecoin      │  │ • A-Frame       │
-    │ • Hub       │  │ • IPFS Storage  │  │ • GPS/Location  │
-    │             │  │ • USDC Payments │  │ • Agent Render  │
-    └─────────────┘  └─────────────────┘  └─────────────────┘
-```
+  │ • Landing │ │ • NEAR Smart │ │ • AR Camera │
+  │ • Landing │ │ • Smart │ │ • AR Camera │
+  │ • UI/UX │ │ Contracts │ │ • WebXR │
+  │ • Auth │ │ • Filecoin │ │ • A-Frame │
+  │ • Hub │ │ • IPFS Storage │ │ • GPS/Location │
+  │ │ │ • USDC Payments │ │ • Agent Render │
+  └─────────────┘ └─────────────────┘ └─────────────────┘
+
+````
 
 ## 🛠️ **Technology Stack**
 
@@ -347,7 +378,7 @@ git clone https://github.com/BeerSlothAgent/geospatila-agent-near-shade-integrat
 
 # AR Viewer
 git clone https://github.com/BeerSlothAgent/geospatial-agent-ar-viewer.git
-```
+````
 
 ### **2. Setup Main Repository:**
 
@@ -465,17 +496,20 @@ ASSEMBLY_AI_API_KEY=your_assemblyai_key
 ## 🚀 **Deployment**
 
 ### **Frontend Deployment:**
+
 - **Netlify**: Optimized for static site hosting
 - **Vercel**: Excellent for React applications
 - **GitHub Pages**: Free static hosting
 - **IPFS/Filecoin**: Decentralized hosting
 
 ### **Backend Services:**
+
 - **Supabase**: Managed PostgreSQL database
 - **Express Server**: Node.js API for webhooks
 - **Revolut Webhooks**: Payment notification endpoints
 
 ### **Mobile Deployment:**
+
 - **Progressive Web App**: Installable on mobile devices
 - **Capacitor/Cordova**: Native mobile app wrapper (optional)
 - **WebXR**: AR features work directly in mobile browsers
@@ -483,6 +517,7 @@ ASSEMBLY_AI_API_KEY=your_assemblyai_key
 ## 🏆 **Innovation Highlights**
 
 ### **Revolutionary Payment Model:**
+
 - ✅ **Eliminates Physical Devices**: No hardware costs for merchants
 - ✅ **User-Controlled Payment Flow**: Users deploy their own terminals
 - ✅ **Cross-Chain Interoperability**: CCIP-powered seamless transfers
@@ -490,12 +525,14 @@ ASSEMBLY_AI_API_KEY=your_assemblyai_key
 - ✅ **AR-Enhanced UX**: Spatial payment terminals in real world
 
 ### **Blockchain Integration:**
+
 - ✅ **Multi-Chain Support**: EVM, Solana, Hedera compatibility
 - ✅ **CCIP Cross-Chain**: Chainlink-powered bridge protocol
 - ✅ **Smart Contract Automation**: Trustless payment processing
 - ✅ **Real-time Settlement**: Instant blockchain confirmations
 
 ### **Spatial Computing:**
+
 - ✅ **AR Payment Terminals**: 3D virtual terminals in physical space
 - ✅ **Geolocation Anchoring**: GPS-accurate terminal placement
 - ✅ **WebXR Standard**: Works across all AR-capable devices
@@ -504,12 +541,14 @@ ASSEMBLY_AI_API_KEY=your_assemblyai_key
 ## 🗺️ **Roadmap**
 
 ### **Phase 1: Core Platform** ✅
+
 - [x] Multi-chain blockchain integration
 - [x] Revolut payment processing
 - [x] AR terminal deployment
 - [x] Basic CCIP cross-chain transfers
 
 ### **Phase 2: Enhanced Features** 🚧
+
 - [ ] Advanced AR interactions and animations
 - [ ] Multi-terminal management dashboard
 - [ ] Recurring payment subscriptions
@@ -517,6 +556,7 @@ ASSEMBLY_AI_API_KEY=your_assemblyai_key
 - [ ] Mobile native app (iOS/Android)
 
 ### **Phase 3: Enterprise** 📋
+
 - [ ] White-label solutions for businesses
 - [ ] API for third-party integrations
 - [ ] Advanced multi-signature support
@@ -524,6 +564,7 @@ ASSEMBLY_AI_API_KEY=your_assemblyai_key
 - [ ] Enterprise SLA and support
 
 ### **Phase 4: Ecosystem** 🌐
+
 - [ ] Marketplace for payment terminal templates
 - [ ] Plugin system for custom payment flows
 - [ ] Integration with major e-commerce platforms
@@ -537,21 +578,25 @@ We welcome contributions from the community!
 ### **How to Contribute:**
 
 1. **Fork the Repository**
+
    ```bash
    git clone https://github.com/BeerSlothAgent/cube-pay-ar.git
    ```
 
 2. **Create Feature Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 3. **Make Your Changes**
+
    - Follow the existing code style
    - Add tests if applicable
    - Update documentation
 
 4. **Commit Your Changes**
+
    ```bash
    git commit -m "feat: add your feature description"
    ```
@@ -562,6 +607,7 @@ We welcome contributions from the community!
    ```
 
 ### **Development Guidelines:**
+
 - Follow TypeScript best practices
 - Write meaningful commit messages (Conventional Commits)
 - Add JSDoc comments for public APIs
@@ -581,16 +627,19 @@ MIT License - See [LICENSE](LICENSE) file for details.
 ## 🔗 **Links & Resources**
 
 ### **Live Applications:**
+
 - **Main Platform**: [AgentSphere Platform](https://playful-cranachan-e941e5.netlify.app/)
 - **AR Demo**: [AR Viewer Demo](https://admirable-hamster-b9c370.netlify.app/)
 - **Presentation**: [Project Overview](https://agentsphere-0xa1tku.gamma.site/)
 
 ### **Related Repositories:**
+
 - **Main Repository**: [cube-pay-ar](https://github.com/BeerSlothAgent/cube-pay-ar)
 - **E-Shop Integration**: [eshop-sparkle-assets](https://github.com/BeerSlothAgent/eshop-sparkle-assets)
 - **On/Off Ramp**: [onofframp-cube-paygate](https://github.com/BeerSlothAgent/onofframp-cube-paygate)
 
 ### **Documentation:**
+
 - [CCIP Integration Guide](./CCIP_IMPLEMENTATION_LEADERSHIP_SUMMARY.md)
 - [Revolut Integration](./REVOLUT_INTEGRATION_COMPLETE_GUIDE.md)
 - [AR Viewer Setup](./MOBILE_AR_DEPLOYMENT_GUIDE.md)
@@ -598,6 +647,7 @@ MIT License - See [LICENSE](LICENSE) file for details.
 - [API Documentation](./API_DOCUMENTATION_POLYGON_AMOY_SOLANA_DEVNET.md)
 
 ### **Technology Partners:**
+
 - **Chainlink CCIP**: Cross-chain interoperability
 - **Revolut Business**: Fiat payment processing
 - **Supabase**: Backend infrastructure
@@ -613,6 +663,7 @@ CubePay AR is part of the **AgentSphere** ecosystem, a comprehensive platform fo
 ### **Why CubePay AR?**
 
 Traditional payment systems require:
+
 - ❌ Expensive physical terminals
 - ❌ Complex setup and maintenance
 - ❌ Card data storage and tokenization
@@ -620,6 +671,7 @@ Traditional payment systems require:
 - ❌ Limited payment options
 
 **CubePay AR provides:**
+
 - ✅ Virtual terminals deployed instantly
 - ✅ Zero hardware costs
 - ✅ User-controlled payment sovereignty
