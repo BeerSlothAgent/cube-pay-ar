@@ -1,270 +1,262 @@
-_CubePay Exchange - Your Gateway to Crypto_# 🚀 CubePay Exchange
+# AgentSphere - Full Web Management Platform
 
-**Your Gateway to Crypto - Buy, Sell, Own**
+## 🌟 **Comprehensive AR/QR Code Deployment Platform**
 
-A modern, secure crypto on/off ramp platform built with React, TypeScript, and Tailwind CSS. Features CubePay's signature dark theme with green glow accents and comprehensive cryptocurrency trading functionality.
+AgentSphere is a cutting-edge platform for deploying and managing AI agents through augmented reality and QR code technology with full blockchain integration.
 
-![CubePay Exchange](https://img.shields.io/badge/CubePay-Exchange-00FF88?style=for-the-badge&logo=bitcoin&logoColor=white)
+### 🚀 **Current Repository: Full Web Management System**
 
-## ✨ Features
+**Complete AgentSphere Implementation**
 
-### 🎯 Core Functionality
+- Full-stack web application with React + TypeScript
+- Supabase database integration for real-time data
+- AR/QR code generation and management
+- Blockchain integration with ThirdWeb
+- Interactive map visualization and agent deployment
 
-- **Buy Crypto (On-Ramp)** - Purchase cryptocurrency using CubePay virtual terminal
-- **Sell Crypto (Off-Ramp)** - Convert cryptocurrency to fiat currency
-- **Wallet Management** - Auto-create wallets for first-time users
-- **Portfolio Dashboard** - Real-time portfolio tracking and analytics
-- **Transaction History** - Complete transaction management
-- **Price Tracking** - Live cryptocurrency prices and market data
+## 🎯 **Current Setup Status**
 
-### 🔐 Security & Authentication
+### **✅ Environment Configuration Complete:**
 
-- **Thirdweb Integration** - Wallet connect + social login
-- **Auto-Wallet Creation** - Seamless onboarding for new users
-- **CubePay Virtual Terminal** - Secure payment processing
-- **Bank-level Encryption** - Enterprise-grade security
+- Supabase database connection established
+- ThirdWeb blockchain integration configured
+- Assembly AI API integration ready
+- Development environment fully operational
 
-### 🎨 Design & UX
+### **✅ Core Features Implemented:**
 
-- **Dark Theme** - Professional crypto exchange aesthetic
-- **CubePay Branding** - Signature green glow (#00FF88) accents
-- **Responsive Design** - Mobile, tablet, and desktop optimized
-- **Animated Components** - Smooth transitions and micro-interactions
-- **Trust Indicators** - Security badges and guarantees
+- Real-time database connectivity testing
+- AR/QR code generation capabilities
+- Interactive map visualization
+- Agent deployment system
+- Blockchain payment integration
 
-## 🛠️ Tech Stack
+### **✅ Database Schema:**
 
-- **Frontend**: React 18 + TypeScript
-- **Styling**: Tailwind CSS with custom CubePay theme
-- **State Management**: Zustand
-- **Routing**: React Router v6
-- **Authentication**: Thirdweb (Wallet Connect + Social Login)
-- **Icons**: Lucide React
-- **Charts**: Recharts
-- **Forms**: React Hook Form + Zod validation
-- **Build Tool**: Vite
-- **Notifications**: React Hot Toast
+- Complete `deployed_objects` table with advanced features
+- Support for trailing agents and interaction ranges
+- Multi-blockchain network compatibility
+- Location-based services and AR notifications
 
-## 🚀 Quick Start
+## 🚀 **Quick Start Guide**
 
-### Prerequisites
+### **Prerequisites:**
 
-- Node.js 16+
-- npm or yarn
+- Node.js 18+ and npm
+- Git
+- Modern web browser with WebRTC support
 
-### Installation
+### **Installation & Setup:**
 
-1. **Clone the repository**
+1. **Clone and Navigate:**
 
    ```bash
-   git clone https://github.com/[your-username]/cubepay-exchange.git
-   cd cubepay-exchange
+   git clone https://github.com/petrkrulis2022/agentsphere-full-web-man-US.git
+   cd agentsphere-full-web-man-US
    ```
 
-2. **Install dependencies**
+2. **Install Dependencies:**
 
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Environment Variables:**
+   The `.env` file is already configured with:
 
-   ```bash
-   cp .env.example .env.local
+   ```env
+   VITE_SUPABASE_URL=https://ncjbwzibnqrbrvicdmec.supabase.co
+   VITE_SUPABASE_ANON_KEY=[configured]
+   VITE_THIRDWEB_CLIENT_ID=[configured]
+   VITE_THIRDWEB_SECRET_KEY=[configured]
+   ASSEBLY-AI-API-KEY=[configured]
    ```
 
-   Add your Thirdweb Client ID:
-
-   ```
-   VITE_THIRDWEB_CLIENT_ID=your-thirdweb-client-id
-   ```
-
-4. **Start the development server**
+4. **Start Development Server:**
 
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
-   Navigate to `http://localhost:5175`
+5. **Access Application:**
+   Open `http://localhost:5175` in your browser
 
-## 📱 Pages & Features
+## 🏗️ **Architecture Overview**
 
-### 🏠 Home Page
-
-- Hero section with quick buy widget
-- Supported cryptocurrencies showcase
-- How it works explanation
-- Trust indicators and statistics
-- Recent transactions feed
-
-### 💰 Buy Crypto (On-Ramp)
-
-- 5-step purchase flow
-- 50+ supported cryptocurrencies
-- Real-time price calculations
-- CubePay virtual terminal integration
-- Transparent fee breakdown
-
-### 💸 Sell Crypto (Off-Ramp)
-
-- Portfolio-based selling
-- Multiple payout methods
-- Bank account integration
-- CubePay virtual card option
-- Instant and scheduled payouts
-
-### 👛 Wallet Management
-
-- Auto-generated wallets for new users
-- Portfolio overview with charts
-- Send/receive functionality
-- Private key management
-- Security settings
-
-### 📊 Dashboard
-
-- Portfolio performance tracking
-- Holdings breakdown with pie charts
-- Recent transaction history
-- Quick action buttons
-- Market summary
-
-### 📈 Prices & Market Data
-
-- Real-time cryptocurrency prices
-- Market cap and volume data
-- Price change indicators
-- Sortable and filterable tables
-- Top gainers/losers
-
-## 🎨 CubePay Brand Colors
-
-```css
-/* Primary Colors */
---cube-green: #00FF88    /* Signature green glow */
---cube-glow: #00CC66     /* Darker green accents */
---primary: #0099FF       /* CubePay blue */
-
-/* Dark Theme */
---dark-bg: #0A0F1C       /* Main background */
---dark-card: #1A1F2E     /* Card backgrounds */
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AgentSphere                              │
+│                   Complete Ecosystem                        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+        ┌─────────────────────────────────────────────────────┐
+        │              Three Repositories                     │
+        └─────────────────────────────────────────────────────┘
+                              │
+                              ▼
+    ┌─────────────┐  ┌─────────────────┐  ┌─────────────────┐
+    │    Main     │  │ NEAR+Filecoin   │  │   AR Viewer     │
+    │ Repository  │  │  +USDC Integr.  │  │   Repository    │
+    │             │  │                 │  │                 │
+    │ • Landing   │  │ • NEAR Smart    │  │ • AR Camera     │
+    │ • Landing   │  │ • Smart         │  │ • AR Camera     │
+    │ • UI/UX     │  │   Contracts     │  │ • WebXR         │
+    │ • Auth      │  │ • Filecoin      │  │ • A-Frame       │
+    │ • Hub       │  │ • IPFS Storage  │  │ • GPS/Location  │
+    │             │  │ • USDC Payments │  │ • Agent Render  │
+    └─────────────┘  └─────────────────┘  └─────────────────┘
 ```
 
-## 🔧 Development
+## 🛠️ **Technology Stack**
 
-### Available Scripts
+### **Frontend (Main Repo):**
+
+- React + TypeScript
+- Tailwind CSS
+- Framer Motion
+- React Router
+- Vite
+
+### **Blockchain (Blockchain+Storage+Payment Repo):**
+
+- Blockchain Protocol SDK
+- Filecoin/IPFS integration
+- USDC smart contracts
+- Web3 wallet connections
+- Supabase database
+
+### **AR Viewer (AR Repo):**
+
+- A-Frame WebXR
+- Three.js
+- WebRTC camera access
+- GPS/location APIs
+- Real-time rendering
+
+## 🚀 **Getting Started**
+
+### **1. Clone All Repositories:**
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
+# Main repository
+git clone https://github.com/BeerSlothAgent/Agent-Sphere-1.git
+
+# Blockchain + Storage + Payment integrations
+git clone https://github.com/BeerSlothAgent/geospatila-agent-near-shade-integrations.git
+
+# AR Viewer
+git clone https://github.com/BeerSlothAgent/geospatial-agent-ar-viewer.git
 ```
 
-### Project Structure
+### **2. Setup Main Repository:**
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components (Button, Card, Input)
-│   ├── layout/         # Layout components (Header, Footer)
-│   └── ...
-├── pages/              # Page components
-│   ├── Home.tsx
-│   ├── BuyCrypto.tsx
-│   ├── SellCrypto.tsx
-│   └── ...
-├── store/              # Zustand state management
-├── types/              # TypeScript type definitions
-├── data/               # Mock data and constants
-├── lib/                # Utility functions
-└── ...
+```bash
+cd Agent-Sphere-1
+npm install
+cp .env.example .env
+# Configure your environment variables
+npm run dev
 ```
 
-## 🌟 Key Features Implemented
+### **3. Setup Blockchain Integrations:**
 
-### Authentication Flow
+```bash
+cd geospatila-agent-near-shade-integrations
+npm install
+# Follow repository-specific setup instructions
+```
 
-- [x] Thirdweb wallet connection
-- [x] Social login (Google, Twitter, Discord)
-- [x] Auto-wallet creation for new users
-- [x] User session management
+### **4. Setup AR Viewer:**
 
-### Trading Features
+```bash
+cd geospatial-agent-ar-viewer
+npm install
+# Follow repository-specific setup instructions
+```
 
-- [x] Buy crypto with fiat
-- [x] Sell crypto to fiat
-- [x] Real-time price updates
-- [x] Fee calculation and display
-- [x] Order management
+## 🌐 **Environment Variables**
 
-### Wallet Features
+### **Main Repository (.env):**
 
-- [x] Portfolio tracking
-- [x] Transaction history
-- [x] Address management
-- [x] QR code generation
-- [x] Security settings
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_key
+VITE_THIRDWEB_CLIENT_ID=your_thirdweb_id
+```
 
-### UI/UX Features
+### **Additional Configuration:**
 
-- [x] Responsive design
-- [x] Dark theme with CubePay branding
-- [x] Animated components
-- [x] Loading states
-- [x] Error handling
-- [x] Toast notifications
+- See individual repository README files for specific setup instructions
+- Each repository has its own environment configuration
+- Cross-repository communication is handled via APIs and shared protocols
 
-## Cross-Chain Testnets - USDC Contract Addresses (EVM + Solana)
+## 🎯 **Key Features**
 
-This table lists the USDC contract addresses for the testnets supported by the `on-off-ramp-cube-paygate` submodule's payment functionality.
+### **🔗 Blockchain Integration:**
 
-| Chain | Network Name | Token | Decimals | USDC Contract Address |
-| :--- | :--- | :--- | :--- | :--- |
-| Arbitrum Sepolia | Arbitrum Sepolia | USDC | 6 | `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` |
-| Avalanche Fuji | Avalanche Fuji | USDC | 6 | `0x5425890298aed601595a70AB815c96711a31Bc65` |
-| Base Sepolia | Base Sepolia | USDC | 6 | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
-| Ethereum Sepolia | Ethereum Sepolia | USDC | 6 | `0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238` |
-| OP Sepolia | OP Sepolia | USDC | 6 | `0x5fd84259d66Cd46123540766Be93DFE6D43130D7` |
-| Polygon Amoy | Polygon Amoy | USDC | 6 | `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` |
-| Solana Devnet | Solana Devnet | USDC | 6 | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` |
+- Smart contract deployment for agents
+- Wallet connectivity
+- Decentralized agent ownership
+- Blockchain-based payment processing
 
-## 🔮 Future Enhancements
+### **📁 Filecoin/IPFS Storage:**
 
-- [ ] Real cryptocurrency price API integration
-- [ ] Actual blockchain transaction processing
-- [ ] KYC/AML verification flow
-- [ ] Advanced trading features (limit orders, etc.)
-- [ ] Mobile app development
-- [ ] Multi-language support
-- [ ] Advanced portfolio analytics
+- Agent metadata storage on IPFS
+- Long-term preservation via Filecoin
+- Decentralized content addressing
+- Immutable agent data
 
-## 🤝 Contributing
+### **💰 USDC Payment System:**
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- Stable coin payments
+- Cross-chain compatibility
+- Instant settlement
+- Low transaction fees
 
-## 📄 License
+### **👁️ Augmented Reality:**
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Real-time AR agent visualization
+- Camera-based interaction
+- GPS-accurate positioning
+- WebXR compatibility
 
-## 🙏 Acknowledgments
+## 🏆 **Blockchain Innovation**
 
-- **CubePay Payment Gate** - For the amazing branding and payment infrastructure
-- **Thirdweb** - For seamless Web3 authentication
-- **Tailwind CSS** - For the utility-first CSS framework
-- **Lucide** - For the beautiful icon set
+This project demonstrates:
 
-## 📞 Support
+- ✅ **Deep blockchain integration**
+- ✅ **Innovative use of Filecoin/IPFS**
+- ✅ **Real-world utility and adoption potential**
+- ✅ **Professional development practices**
+- ✅ **Comprehensive documentation**
+- ✅ **Live working demos**
 
-For support, email support@cubepayexchange.com or join our Discord community.
+## 🤝 **Contributing**
+
+Each repository accepts contributions:
+
+1. Fork the specific repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+5. Follow repository-specific contribution guidelines
+
+## 📄 **License**
+
+MIT License - See individual repositories for specific license terms.
+
+## 🔗 **Links**
+
+- **Main Repository:** [Agent-Sphere-1](https://github.com/BeerSlothAgent/Agent-Sphere-1)
+- **Blockchain+Storage+Payment:** [geospatila-agent-near-shade-integrations](https://github.com/BeerSlothAgent/geospatila-agent-near-shade-integrations)
+- **AR Viewer:** [geospatial-agent-ar-viewer](https://github.com/BeerSlothAgent/geospatial-agent-ar-viewer)
+- **Presentation** https://agentsphere-0xa1tku.gamma.site/
+- **Main AgentSPher** https://playful-cranachan-e941e5.netlify.app/
+- **Live AR Demo:** [https://admirable-hamster-b9c370.netlify.app/](https://admirable-hamster-b9c370.netlify.app/)
+-
 
 ---
 
-**Built with ❤️ for the crypto community**
-
-_CubePay Exchange - Your Gateway to Crypto_
+**Built with Blockchain Innovation** 🚀
+**Powered by Blockchain + Filecoin + USDC** 💎

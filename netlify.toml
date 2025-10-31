@@ -1,16 +1,30 @@
+# AgentSphere - Build settings
 [build]
   publish = "dist"
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm run build"
 
-[build.environment]
-  NODE_VERSION = "20"
-  NODE_ENV = "production"
-  VITE_SUPABASE_URL = "https://ncjbwzibnqrbrvicdmec.supabase.co"
-  VITE_REVOLUT_CLIENT_ID_SANDBOX = "96ca6a20-254d-46e7-aad1-46132e087901"
-  VITE_APP_TITLE = "AgentSphere AR Viewer"
-  VITE_BUILD_VERSION = "1.0.0-revolut-qr-payments"
-
+# Redirect rules for SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Headers for AR/Camera functionality
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=*, microphone=*, geolocation=*, xr-spatial-tracking=*, accelerometer=*, gyroscope=*, magnetometer=*"
+    Feature-Policy = "camera *; microphone *; geolocation *"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "max-age=31536000"
+
+# Environment variables (you'll set these in Netlify dashboard)
+# VITE_SUPABASE_URL = "your_supabase_url"
+# VITE_SUPABASE_ANON_KEY = "your_supabase_key"
