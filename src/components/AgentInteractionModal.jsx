@@ -42,7 +42,17 @@ const networkToChainId = {
 };
 
 // Helper functions for dynamic agent payment data
-const getServiceFeeDisplay = (agent) => {
+const getServiceFeeDisplay = (agent, paymentAmount = null) => {
+  // 💰 PRIORITY 0: Use dynamic payment amount from e-shop/on-ramp if available
+  if (
+    paymentAmount !== null &&
+    paymentAmount !== undefined &&
+    paymentAmount > 0
+  ) {
+    console.log("💰 Using dynamic payment amount:", paymentAmount);
+    return `${paymentAmount} USDC`;
+  }
+
   // Use the same priority logic as resolveInteractionFee to ensure consistency
   console.log("🔍 AgentInteractionModal: Full agent data for fee:", {
     name: agent?.name,
@@ -163,8 +173,21 @@ const getNetworkDisplay = (agent) => {
   // Don't trust: agent?.deployment_network_name || agent?.network
   let network = "Unknown Network";
 
-  // Use the chainId already declared above
-  if (chainId) {
+  // ✅ NEW: Check for Solana or other non-EVM networks first
+  if (
+    agent?.deployment_network_name &&
+    agent?.deployment_network_name !== "Unknown Network"
+  ) {
+    network = agent.deployment_network_name;
+    console.log("✅ Using deployment_network_name:", network);
+  }
+  // Try payment_config.network_info.name as secondary source
+  else if (agent?.payment_config?.network_info?.name) {
+    network = agent.payment_config.network_info.name;
+    console.log("✅ Using payment_config.network_info.name:", network);
+  }
+  // Use the chainId for EVM networks
+  else if (chainId) {
     const networkInfo = getNetworkInfo(chainId);
     network = networkInfo?.name || "Unknown Network";
     console.log(
@@ -290,6 +313,21 @@ const getTokenContractDisplay = (agent) => {
     );
   }
 
+  // ✅ NEW: Check for token_address in database first (for Solana and other non-EVM)
+  if (agent?.token_address && agent.token_address.length > 10) {
+    const display = `${agent.token_address.substring(
+      0,
+      8
+    )}...${agent.token_address.substring(agent.token_address.length - 8)}`;
+    console.log("✅ Using agent.token_address:", {
+      display,
+      fullAddress: agent.token_address,
+      agent: agent?.name,
+      source: "database token_address field",
+    });
+    return display;
+  }
+
   if (!chainId) {
     console.log(
       "⚠️ AgentInteractionModal: No chain ID found for agent:",
@@ -324,6 +362,7 @@ const AgentInteractionModal = ({
   onClose,
   onPayment,
   onQRScan = null,
+  paymentAmount = null, // 💰 Dynamic payment amount from e-shop/on-ramp
 }) => {
   const [activeTab, setActiveTab] = useState("chat");
   const [messages, setMessages] = useState([]);
@@ -681,7 +720,7 @@ const AgentInteractionModal = ({
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-slate-400">Service Fee:</span>
                       <span className="text-white font-semibold">
-                        {getServiceFeeDisplay(agent)}
+                        {getServiceFeeDisplay(agent, paymentAmount)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center mb-2">

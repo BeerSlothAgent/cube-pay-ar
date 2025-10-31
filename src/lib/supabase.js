@@ -6,7 +6,7 @@ const SUPABASE_URL =
   "https://ncjbwzibnqrbrvicdmec.supabase.co";
 const SUPABASE_ANON_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jamJ3emlibnFyYnJ2aWNkbWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2ODAxNTksImV4cCI6MjA2NjI1NjE1OX0.R7rx4jOPt9oOafcyJr3x-nEvGk5-e4DP7MbfCVOCHHI";
+  "sb_publishable_nDOtY1UHyrKCWlu2hU2ueg_fRRYs0hA";
 
 // Check if we have valid Supabase credentials
 const hasValidCredentials =

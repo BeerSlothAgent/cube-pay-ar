@@ -16,6 +16,10 @@ import CameraTest from "./components/CameraTest";
 import UnifiedWalletConnect from "./components/UnifiedWalletConnect";
 import AgentFeeValidationDashboard from "./components/AgentFeeValidationDashboard";
 import SimpleTest from "./components/SimpleTest"; // Add simple test component
+import SimpleDebugComponent from "./components/SimpleDebugComponent"; // TEMPORARY DEBUG
+import VirtualTerminal from "./components/VirtualTerminal"; // NEW: Dynamic payment terminal
+import PaymentRedirect from "./components/PaymentRedirect"; // NEW: Payment redirect page
+import PaymentRedirectSimple from "./components/PaymentRedirectSimple"; // Simple test version
 import ThirdWebProviderWrapper from "./providers/ThirdWebProvider";
 import NotificationProvider, {
   useNotifications,
@@ -54,6 +58,8 @@ function AppContent() {
       <Routes>
         {/* Debug Route for Simple Test */}
         <Route path="/test" element={<SimpleTest />} />
+        {/* TEMPORARY DEBUG ROUTE */}
+        <Route path="/debug" element={<SimpleDebugComponent />} />
         {/* New Agent Marketplace Route (Cube-Ready) */}
         <Route path="/new-marketplace" element={<AgentMarketplace />} />
         {/* Main Landing Screen Route */}
@@ -61,7 +67,7 @@ function AppContent() {
           path="/"
           element={
             <MainLandingScreen
-              onEnterAgentWorld={() => navigate("/camera-activation")}
+              onEnterAgentWorld={() => navigate("/ar-view")}
               onShowWallet={handleShowWallet}
             />
           }
@@ -75,6 +81,18 @@ function AppContent() {
 
         {/* Camera Debug Test Route */}
         <Route path="/camera-test" element={<CameraTest />} />
+
+        {/* Payment Redirect Page (Shows payment info before AR Viewer) */}
+        <Route path="/payment-redirect" element={<PaymentRedirect />} />
+
+        {/* Simple Payment Redirect for testing */}
+        <Route
+          path="/payment-redirect-simple"
+          element={<PaymentRedirectSimple />}
+        />
+
+        {/* Virtual Terminal Payment Gateway (Dynamic Payment Sessions) */}
+        <Route path="/virtual-terminal" element={<VirtualTerminal />} />
 
         {/* Camera Activation Screen Route */}
         <Route

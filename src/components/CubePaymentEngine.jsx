@@ -1,14 +1,20 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Text, Html } from "@react-three/drei";
+import * as THREE from "three"; // Import THREE for DoubleSide
 import morphPaymentService from "../services/morphPaymentService";
 import solanaPaymentService from "../services/solanaPaymentService";
 import { dynamicQRService } from "../services/dynamicQRService"; // Add dynamic QR service
 import ccipConfigService from "../services/ccipConfigService"; // CCIP transaction building (default export)
 import { hederaWalletService } from "../services/hederaWalletService";
+import * as revolutBankService from "../services/revolutBankService"; // Revolut Bank QR service
+import * as revolutVirtualCardService from "../services/revolutVirtualCardService"; // Revolut Virtual Card service
 import { supabase } from "../lib/supabase";
 import QRCode from "react-qr-code";
 import IntermediatePaymentModal from "./IntermediatePaymentModal"; // Transaction validation modal
+import RevolutBankQRModal from "./RevolutBankQRModal"; // Revolut Bank QR modal
+import { VirtualCardManager } from "./VirtualCardManager"; // NEW: Virtual Card Manager with card selector
+import { usePaymentStatus } from "../hooks/usePaymentStatus"; // Real-time payment status hook
 
 // AgentSphere Payment Configuration Reader
 const getAgentPaymentConfig = async (agentId) => {
@@ -107,7 +113,14 @@ const PaymentCube = ({
   actualEnabledMethods = ["crypto_qr"],
   cubeRef,
   isVisible = true,
+  isInitializing = false,
 }) => {
+  console.log("🎮 PaymentCube RENDERING with:", {
+    actualEnabledMethods,
+    isInitializing,
+    handleFaceClickExists: !!handleFaceClick,
+  });
+
   const meshRef = useRef();
   const [hoveredFace, setHoveredFace] = useState(null);
   const [selectedFace, setSelectedFace] = useState(0);
@@ -117,43 +130,43 @@ const PaymentCube = ({
   const [rotationVelocity, setRotationVelocity] = useState({ x: 0, y: 0 });
   const { camera, viewport, gl } = useThree();
 
-  // Payment method configuration
+  // Payment method configuration - Unified green shiny metallic cube
   const paymentMethods = {
     crypto_qr: {
-      icon: "📱", // QR code icon will be added in text
+      icon: "�", // QR code icon
       text: "Crypto QR",
-      color: "#00ff66",
-      description: "",
+      color: "#00ff66", // Unified green for all faces
+      description: "Tap to Scan",
     },
     virtual_card: {
-      icon: "💳",
+      icon: "💳", // Card icon
       text: "Virtual Card",
-      color: "#0088ff",
-      description: "",
+      color: "#00ff66", // Unified green for all faces
+      description: "Tap to Pay",
     },
     bank_qr: {
-      icon: "🔲", // QR code icon instead of bank
+      icon: "", // No icon
       text: "Bank QR",
-      color: "#0066cc",
-      description: "",
+      color: "#00ff66", // Unified green for all faces
+      description: "Tap to Scan",
     },
     voice_pay: {
-      icon: "🎤", // Microphone icon for voice
+      icon: "🎤", // Microphone icon
       text: "Voice Pay",
-      color: "#9900ff",
-      description: "",
+      color: "#00ff66", // Unified green for all faces
+      description: "Tap to Speak",
     },
     sound_pay: {
-      icon: "🎵",
+      icon: "🎵", // Audio waves icon
       text: "Sound Pay",
-      color: "#ff6600",
-      description: "",
+      color: "#00ff66", // Unified green for all faces
+      description: "Tap to Pay",
     },
     btc_payments: {
-      icon: "🪙", // Changed from ₿ to 🪙 for better visibility
+      icon: "₿", // Bitcoin symbol
       text: "BTC Payments",
-      color: "#f7931a",
-      description: "",
+      color: "#00ff66", // Unified green for all faces
+      description: "Tap to Select",
     },
   };
 
@@ -234,6 +247,12 @@ const PaymentCube = ({
   // Handle cube click - select front-facing payment method
   const handleCubeClick = (event) => {
     event.stopPropagation();
+
+    // Prevent clicks during initialization or dragging
+    if (isInitializing) {
+      console.log("⏳ Cube initializing, ignoring cube click");
+      return;
+    }
 
     if (isDragging) return; // Don't select if we're dragging
 
@@ -348,88 +367,97 @@ const PaymentCube = ({
     }
   };
 
-  // Enhanced mouse controls
-  const handlePointerDown = (event) => {
-    setIsDragging(true);
-    setIsRotating(false);
-    setLastMousePos({ x: event.clientX, y: event.clientY });
-    gl.domElement.style.cursor = "grabbing";
-  };
+  // Enhanced mouse controls with useCallback to prevent re-creation
+  const handlePointerDown = useCallback(
+    (event) => {
+      setIsDragging(true);
+      setIsRotating(false);
+      setLastMousePos({ x: event.clientX, y: event.clientY });
+      gl.domElement.style.cursor = "grabbing";
+    },
+    [gl]
+  );
 
-  const handlePointerMove = (event) => {
-    if (!isDragging) return;
+  const handlePointerMove = useCallback(
+    (event) => {
+      if (!isDragging) return;
 
-    const deltaX = event.clientX - lastMousePos.x;
-    const deltaY = event.clientY - lastMousePos.y;
+      const deltaX = event.clientX - lastMousePos.x;
+      const deltaY = event.clientY - lastMousePos.y;
 
-    // Apply rotation
-    if (meshRef.current) {
-      meshRef.current.rotation.y += deltaX * 0.01;
-      meshRef.current.rotation.x += deltaY * 0.01;
+      // Apply rotation
+      if (meshRef.current) {
+        meshRef.current.rotation.y += deltaX * 0.01;
+        meshRef.current.rotation.x += deltaY * 0.01;
 
-      // Allow full 360-degree rotation on both axes to access all 6 faces
-      // No rotation limits - full freedom to view top and bottom faces
-    }
+        // Allow full 360-degree rotation on both axes to access all 6 faces
+        // No rotation limits - full freedom to view top and bottom faces
+      }
 
-    // Store velocity for momentum
-    setRotationVelocity({
-      x: deltaY * 0.01,
-      y: deltaX * 0.01,
-    });
+      // Store velocity for momentum
+      setRotationVelocity({
+        x: deltaY * 0.01,
+        y: deltaX * 0.01,
+      });
 
-    setLastMousePos({ x: event.clientX, y: event.clientY });
-  };
+      setLastMousePos({ x: event.clientX, y: event.clientY });
+    },
+    [isDragging, lastMousePos]
+  );
 
-  const handlePointerUp = () => {
+  const handlePointerUp = useCallback(() => {
     setIsDragging(false);
     gl.domElement.style.cursor = "grab";
 
     // Resume auto-rotation after a delay
     setTimeout(() => {
-      if (!isDragging) setIsRotating(true);
+      setIsRotating(true);
     }, 3000);
-  };
+  }, [gl]);
 
-  // Touch controls for mobile
-  const handleTouchStart = (event) => {
+  // Touch controls for mobile with useCallback
+  const handleTouchStart = useCallback((event) => {
     if (event.touches.length === 1) {
       const touch = event.touches[0];
       setIsDragging(true);
       setIsRotating(false);
       setLastMousePos({ x: touch.clientX, y: touch.clientY });
     }
-  };
+  }, []);
 
-  const handleTouchMove = (event) => {
-    if (!isDragging || event.touches.length !== 1) return;
+  const handleTouchMove = useCallback(
+    (event) => {
+      if (!isDragging || event.touches.length !== 1) return;
 
-    event.preventDefault();
-    const touch = event.touches[0];
-    const deltaX = touch.clientX - lastMousePos.x;
-    const deltaY = touch.clientY - lastMousePos.y;
+      event.preventDefault();
+      const touch = event.touches[0];
+      const deltaX = touch.clientX - lastMousePos.x;
+      const deltaY = touch.clientY - lastMousePos.y;
 
-    if (meshRef.current) {
-      meshRef.current.rotation.y += deltaX * 0.008;
-      meshRef.current.rotation.x += deltaY * 0.008;
+      if (meshRef.current) {
+        meshRef.current.rotation.y += deltaX * 0.008;
+        meshRef.current.rotation.x += deltaY * 0.008;
 
-      // Allow full 360-degree rotation on both axes to access all 6 faces
-      // No rotation limits - full freedom to view top and bottom faces
-    }
+        // Allow full 360-degree rotation on both axes to access all 6 faces
+        // No rotation limits - full freedom to view top and bottom faces
+      }
 
-    setRotationVelocity({
-      x: deltaY * 0.008,
-      y: deltaX * 0.008,
-    });
+      setRotationVelocity({
+        x: deltaY * 0.008,
+        y: deltaX * 0.008,
+      });
 
-    setLastMousePos({ x: touch.clientX, y: touch.clientY });
-  };
+      setLastMousePos({ x: touch.clientX, y: touch.clientY });
+    },
+    [isDragging, lastMousePos]
+  );
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
     setTimeout(() => {
-      if (!isDragging) setIsRotating(true);
+      setIsRotating(true);
     }, 3000);
-  };
+  }, []);
 
   // Add global event listeners for drag
   useEffect(() => {
@@ -449,7 +477,7 @@ const PaymentCube = ({
       canvas.removeEventListener("touchend", handleTouchEnd);
       canvas.style.cursor = "default";
     };
-  }, [isDragging, lastMousePos]);
+  }, [gl, handlePointerMove, handlePointerUp, handleTouchMove, handleTouchEnd]);
 
   if (!isVisible) return null;
 
@@ -542,10 +570,12 @@ const PaymentCube = ({
                 }}
                 onPointerOver={(e) => {
                   e.stopPropagation();
+                  setHoveredFace(true);
                   gl.domElement.style.cursor = "pointer";
                 }}
                 onPointerOut={(e) => {
                   e.stopPropagation();
+                  setHoveredFace(false);
                   gl.domElement.style.cursor = "grab";
                 }}
               >
@@ -553,7 +583,7 @@ const PaymentCube = ({
                 <meshStandardMaterial
                   color={method === "btc_payments" ? "#f7931a" : config.color}
                   transparent
-                  opacity={isActiveFace ? 1.0 : 0.9}
+                  opacity={0.3}
                   emissive={
                     method === "btc_payments"
                       ? "#803d00"
@@ -567,87 +597,66 @@ const PaymentCube = ({
                 />
               </mesh>
 
-              {/* Button face surface for better text contrast */}
-              <mesh
-                position={[
-                  facePositions[faceIndex][0] + textOffsets[faceIndex][0] * 2.1,
-                  facePositions[faceIndex][1] + textOffsets[faceIndex][1] * 2.1,
-                  facePositions[faceIndex][2] + textOffsets[faceIndex][2] * 2.1,
-                ]}
-                rotation={faceRotations[faceIndex]}
-              >
-                <planeGeometry args={[2.3, 2.3]} />
-                <meshBasicMaterial
-                  color={
-                    method === "btc_payments"
-                      ? "#fff5e6"
-                      : isActiveFace
-                      ? "#ffffff"
-                      : "#f8f8f8"
-                  }
-                  transparent
-                  opacity={0.95}
-                />
-              </mesh>
-
-              {/* Icon text - positioned on the 3D button */}
+              {/* Icon text with outline/shadow for visibility */}
               <Text
                 position={[
                   facePositions[faceIndex][0] + textOffsets[faceIndex][0] * 2.2,
                   facePositions[faceIndex][1] +
                     textOffsets[faceIndex][1] * 2.2 +
                     0.4,
-                  facePositions[faceIndex][2] + textOffsets[faceIndex][2] * 2.2,
+                  facePositions[faceIndex][2] +
+                    textOffsets[faceIndex][2] * 2.2 +
+                    0.02,
                 ]}
                 rotation={faceRotations[faceIndex]}
                 fontSize={0.6}
-                color="#000000"
+                color="#ffffff"
                 anchorX="center"
                 anchorY="middle"
                 fontWeight="bold"
-                outlineWidth={0.1}
-                outlineColor="#ffffff"
+                outlineWidth={0.05}
+                outlineColor="#000000"
               >
                 {config.icon}
               </Text>
 
-              {/* Method name - with multi-line support for long text */}
+              {/* Method name with outline for visibility */}
               {config.text.length > 15 ? (
                 // Multi-line text for long payment method names
                 <>
                   <Text
                     position={[
                       textPosition[0],
-                      textPosition[1] + 0.1,
-                      textPosition[2],
+                      textPosition[1] + 0.2,
+                      textPosition[2] + 0.02,
                     ]}
                     rotation={faceRotations[faceIndex]}
-                    fontSize={0.28}
-                    color="#000000"
+                    fontSize={0.22}
+                    color="#ffffff"
                     anchorX="center"
                     anchorY="middle"
-                    outlineWidth={0.1}
-                    outlineColor="#ffffff"
                     fontWeight="bold"
+                    outlineWidth={0.08}
+                    outlineColor="#000000"
                   >
-                    {config.text.split(" - ")[0]}
+                    {config.text.split(" ")[0]}
                   </Text>
                   <Text
                     position={[
                       textPosition[0],
-                      textPosition[1] - 0.2,
-                      textPosition[2],
+                      textPosition[1] - 0.1,
+                      textPosition[2] + 0.02,
                     ]}
                     rotation={faceRotations[faceIndex]}
-                    fontSize={0.28}
-                    color="#000000"
+                    fontSize={0.22}
+                    color="#ffffff"
                     anchorX="center"
                     anchorY="middle"
-                    outlineWidth={0.1}
-                    outlineColor="#ffffff"
                     fontWeight="bold"
+                    outlineWidth={0.08}
+                    outlineColor="#000000"
                   >
-                    {config.text.split(" - ")[1] || ""}
+                    {config.text.split(" ").slice(1).join(" ")}
                   </Text>
                 </>
               ) : (
@@ -655,105 +664,27 @@ const PaymentCube = ({
                 <Text
                   position={[
                     textPosition[0],
-                    textPosition[1] + 0.1,
-                    textPosition[2],
+                    textPosition[1] + 0.05,
+                    textPosition[2] + 0.02,
                   ]}
                   rotation={faceRotations[faceIndex]}
-                  fontSize={0.26}
-                  color="#000000"
+                  fontSize={0.28}
+                  color="#ffffff"
                   anchorX="center"
                   anchorY="middle"
-                  outlineWidth={0.1}
-                  outlineColor="#ffffff"
                   fontWeight="bold"
+                  outlineWidth={0.08}
+                  outlineColor="#000000"
                 >
                   {config.text}
                 </Text>
               )}
-
-              {/* Method-specific action text with larger font and better contrast */}
-              <Text
-                position={[
-                  textPosition[0],
-                  textPosition[1] - 0.7,
-                  textPosition[2],
-                ]}
-                rotation={faceRotations[faceIndex]}
-                fontSize={0.18}
-                color="#000000"
-                anchorX="center"
-                anchorY="middle"
-                outlineWidth={0.08}
-                outlineColor="#ffffff"
-                fontWeight="bold"
-              >
-                {method === "virtual_card"
-                  ? "Tap To Pay"
-                  : method === "voice_pay"
-                  ? "Tap To Speak"
-                  : method === "sound_pay"
-                  ? "Tap To Pay"
-                  : method.includes("qr")
-                  ? "Tap To Scan"
-                  : method === "btc_payments"
-                  ? "Tap To Select"
-                  : "Tap To Select"}
-              </Text>
             </group>
           );
         })}
       </mesh>
 
-      {/* Floating "Pay With" Text - moved right above cube */}
-      <Html position={[2, 2, -3]} transform>
-        <div
-          style={{
-            color: "#00ff00",
-            fontSize: "28px",
-            fontWeight: "bold",
-            textAlign: "center",
-            textShadow: "0 0 25px #00ff00a0, 0 0 40px #00ff0060",
-            animation: "float 3s ease-in-out infinite",
-            transform: "translate(-50%, -50%)",
-            fontFamily: "'Segoe UI', Arial, sans-serif",
-          }}
-        >
-          💎 Pay With
-        </div>
-      </Html>
-
       {/* Amount Display - moved further down to avoid overlaying cube */}
-      {/* Enhanced Dramatic Lighting */}
-      <pointLight
-        position={[0, 0, -1]}
-        color="#00ff66"
-        intensity={1.5}
-        distance={15}
-      />
-      <pointLight
-        position={[3, 3, -3]}
-        color="#44ff88"
-        intensity={0.8}
-        distance={10}
-      />
-      <pointLight
-        position={[-3, -3, -3]}
-        color="#88ffaa"
-        intensity={0.6}
-        distance={10}
-      />
-      <pointLight
-        position={[0, 5, 0]}
-        color="#66ff99"
-        intensity={0.7}
-        distance={12}
-      />
-      <pointLight
-        position={[0, -5, 0]}
-        color="#22dd55"
-        intensity={0.5}
-        distance={12}
-      />
     </group>
   );
 };
@@ -846,8 +777,32 @@ const ARQRDisplay = ({ qrData, onBack, agent, position = [0, 0, -3] }) => {
 
       setUserNetwork(currentUserNetwork);
 
-      // Check for cross-chain opportunities
-      if (currentUserNetwork && dynamicQRService.getCCIPService) {
+      // Check if agent is on Solana - skip cross-chain detection for Solana
+      const agentIsSolana =
+        agent?.network === "Solana Devnet" ||
+        agent?.deployment_network_name === "Solana Devnet" ||
+        agent?.chain_id === "devnet" ||
+        agent?.chain_id === "solana-devnet" ||
+        (typeof agent?.chain_id === "string" &&
+          agent?.chain_id.toLowerCase().includes("solana"));
+
+      const isSolanaWallet =
+        typeof window !== "undefined" && window.solana?.isConnected;
+
+      console.log("🔍 Agent/Wallet Detection in init:", {
+        agentIsSolana,
+        isSolanaWallet,
+        agentNetwork: agent?.network,
+        agentChainId: agent?.chain_id,
+      });
+
+      // Skip cross-chain logic entirely for Solana
+      if (agentIsSolana || isSolanaWallet) {
+        console.log("🌟 Solana detected → Skipping EVM cross-chain logic");
+        setShowCrossChainUI(false);
+        setPaymentMode("same-chain");
+      } else if (currentUserNetwork && dynamicQRService.getCCIPService) {
+        // Check for cross-chain opportunities (EVM only)
         try {
           const ccipService = dynamicQRService.getCCIPService();
           const crossChainDetection =
@@ -1114,6 +1069,19 @@ const ARQRDisplay = ({ qrData, onBack, agent, position = [0, 0, -3] }) => {
         transactionData = currentQRData;
       }
 
+      // 🌟 CRITICAL FIX: Override chainId for Solana agents
+      const agentIsSolana =
+        agent?.network === "Solana Devnet" ||
+        agent?.deployment_network_name === "Solana Devnet" ||
+        (typeof agent?.chain_id === "string" &&
+          agent?.chain_id.toLowerCase().includes("solana"));
+
+      if (agentIsSolana && transactionData) {
+        console.log("🔧 Overriding chainId for Solana agent");
+        transactionData.chainId = "devnet";
+        transactionData.chainType = "SVM";
+      }
+
       console.log("📤 Transaction data:", transactionData);
 
       // Use the click handler from dynamic service
@@ -1154,7 +1122,7 @@ const ARQRDisplay = ({ qrData, onBack, agent, position = [0, 0, -3] }) => {
 
   // Determine QR display value
   const qrDisplayValue = (() => {
-    if (!currentQRData) return "";
+    if (!currentQRData) return "https://example.com"; // Fallback to valid URL instead of empty string
 
     // Handle cross-chain CCIP QR data
     if (
@@ -1521,20 +1489,38 @@ const ARQRDisplay = ({ qrData, onBack, agent, position = [0, 0, -3] }) => {
                 />
               ) : (
                 <div style={{ position: "relative" }}>
-                  <QRCode
-                    value={qrDisplayValue}
-                    size={200}
-                    style={{
-                      background: "white",
-                      padding: "10px",
-                      borderRadius: "10px",
-                      cursor: "pointer",
-                      border:
-                        paymentMode === "cross-chain"
-                          ? "2px solid #ff9500"
-                          : "2px solid #00ff00",
-                    }}
-                  />
+                  {qrDisplayValue && qrDisplayValue.length > 0 ? (
+                    <QRCode
+                      value={qrDisplayValue}
+                      size={200}
+                      style={{
+                        background: "white",
+                        padding: "10px",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        border:
+                          paymentMode === "cross-chain"
+                            ? "2px solid #ff9500"
+                            : "2px solid #00ff00",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "200px",
+                        height: "200px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#f0f0f0",
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        color: "#666",
+                      }}
+                    >
+                      No QR Data Available
+                    </div>
+                  )}
                   {paymentMode === "cross-chain" && (
                     <div
                       style={{
@@ -1696,6 +1682,33 @@ const CubePaymentEngine = ({
   const [intermediateTransactionData, setIntermediateTransactionData] =
     useState(null);
 
+  // Revolut Payment State
+  const [showRevolutBankModal, setShowRevolutBankModal] = useState(false);
+  const [revolutOrderData, setRevolutOrderData] = useState(null);
+  const [revolutPaymentStatus, setRevolutPaymentStatus] = useState("idle"); // 'idle', 'processing', 'completed', 'failed', 'cancelled'
+
+  // Revolut Virtual Card State
+  const [showVirtualCardModal, setShowVirtualCardModal] = useState(false);
+  const [virtualCardAgentId, setVirtualCardAgentId] = useState(null);
+
+  const [isInitializing, setIsInitializing] = useState(true); // Prevent auto-clicks on load
+
+  // Prevent immediate face selection when cube loads
+  useEffect(() => {
+    if (isOpen) {
+      setIsInitializing(true);
+      console.log(
+        "🔒 Cube initializing - blocking all interactions for 1500ms"
+      );
+      const timer = setTimeout(() => {
+        setIsInitializing(false);
+        console.log("✅ Cube ready - interactions enabled");
+      }, 1500); // Increased to 1500ms delay before allowing face selection
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   // Load payment configuration from AgentSphere when component opens
   useEffect(() => {
     const loadPaymentConfig = async () => {
@@ -1729,25 +1742,59 @@ const CubePaymentEngine = ({
     loadPaymentConfig();
   }, [isOpen, agent?.id]);
 
+  // Debug: Track rendering state
+  useEffect(() => {
+    console.log("🎲 RENDER STATE UPDATE:", {
+      currentView,
+      isLoadingConfig,
+      isInitializing,
+      isOpen,
+      cubeWillRender: currentView === "cube" && !isLoadingConfig,
+    });
+  }, [currentView, isLoadingConfig, isInitializing, isOpen]);
+
   // Handle face selection
   const handleFaceSelected = async (methodKey, methodConfig) => {
+    console.log("🔵 handleFaceSelected ENTERED:", methodKey, methodConfig);
+
+    // Prevent auto-selection during initialization
+    if (isInitializing) {
+      console.log("⏳ Cube initializing, ignoring face selection");
+      return;
+    }
+
     console.log("🎯 Payment method selected:", methodKey, methodConfig);
     setSelectedMethod({ key: methodKey, config: methodConfig });
 
     if (methodKey === "crypto_qr") {
+      console.log("📍 Routing to: handleCryptoQRSelection");
       await handleCryptoQRSelection();
     } else if (methodKey === "btc_payments") {
+      console.log("📍 Routing to: handleBTCPayments");
       handleBTCPayments();
+    } else if (methodKey === "bank_qr") {
+      console.log("📍 Routing to: handleBankQRSelection");
+      await handleBankQRSelection();
+    } else if (methodKey === "virtual_card") {
+      console.log("📍 Routing to: handleVirtualCardSelection");
+      await handleVirtualCardSelection();
     } else {
-      // Show "Coming Soon" for other methods
+      console.log("📍 Showing Coming Soon alert for:", methodKey);
+      // Show "Coming Soon" for other methods (voice_pay, sound_pay)
       alert(
-        `${methodConfig.text} - Coming Soon!\n\nThis payment method will be available in the next update.\n\nFor now, please use Crypto QR payment.`
+        `${methodConfig.text} - Coming Soon!\n\nThis payment method will be available in the next update.\n\nFor now, please use Crypto QR, Bank QR, or Virtual Card payments.`
       );
     }
   };
 
   // Handle Crypto QR selection - integrate with existing system
   const handleCryptoQRSelection = async () => {
+    // Prevent execution during initialization
+    if (isInitializing) {
+      console.log("⏳ Cube initializing, ignoring crypto QR selection");
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
@@ -1755,28 +1802,121 @@ const CubePaymentEngine = ({
       console.log("📊 Agent data for QR generation:", agent);
 
       // STEP 1: Detect network configuration for cross-chain vs same-chain
-      const userNetwork = window.ethereum?.chainId
-        ? parseInt(window.ethereum.chainId, 16)
-        : null;
+      // Check if user is on Solana or EVM wallet
+      // CRITICAL FIX: Check if Ethereum wallet is ACTIVELY being used (has chainId set)
+      const isEVMWallet = window.ethereum && window.ethereum.chainId;
+      const isSolanaWallet = !isEVMWallet && window.solana?.isConnected;
+
+      const userNetwork =
+        isEVMWallet && window.ethereum?.chainId
+          ? parseInt(window.ethereum.chainId, 16)
+          : null;
 
       const agentNetwork = agent?.network_id || agent?.chain_id;
+
+      // Detect if agent is on Solana
+      const agentIsSolana =
+        agent?.network === "Solana Devnet" ||
+        agent?.deployment_network_name === "Solana Devnet" ||
+        agentNetwork === "devnet" ||
+        agentNetwork === "solana-devnet" ||
+        (typeof agentNetwork === "string" &&
+          agentNetwork.toLowerCase().includes("solana"));
+
+      console.log("🔍 DETAILED Network Detection:");
+      console.log("  - isSolanaWallet:", isSolanaWallet);
+      console.log("  - isEVMWallet:", isEVMWallet);
+      console.log("  - agentIsSolana:", agentIsSolana);
+      console.log(
+        "  - window.ethereum.chainId (raw):",
+        window.ethereum?.chainId
+      );
+      console.log("  - userNetwork (parsed):", userNetwork);
+      console.log("  - Base Sepolia should be: 84532");
+      console.log("  - agentNetwork:", agentNetwork);
+      console.log("  - agent?.network_id:", agent?.network_id);
+      console.log("  - agent?.chain_id:", agent?.chain_id);
 
       console.log("🌐 Network Detection:", {
         userNetwork,
         agentNetwork,
+        isSolanaWallet,
+        agentIsSolana,
         needsCrossChain:
           userNetwork && agentNetwork && userNetwork !== agentNetwork,
       });
 
+      // VALIDATION: Check if user is on a supported network (ONLY FOR EVM)
+      // Skip network validation for Solana wallets
+      if (isEVMWallet && !agentIsSolana) {
+        const SUPPORTED_TESTNETS = [
+          11155111, 421614, 84532, 11155420, 80002, 43113,
+        ]; // Sepolia, Arb, Base, OP, Polygon, Avalanche
+        const MAINNET_CHAINS = [1, 137, 42161, 8453, 10, 43114]; // ETH, Polygon, Arb, Base, OP, Avalanche mainnets
+
+        if (userNetwork && MAINNET_CHAINS.includes(userNetwork)) {
+          console.error("❌ User is on MAINNET but agent requires TESTNET");
+          alert(
+            `⚠️ Network Mismatch\n\n` +
+              `You're connected to a MAINNET network.\n` +
+              `This agent requires a TESTNET connection.\n\n` +
+              `Please switch to one of these testnets:\n` +
+              `• Sepolia (11155111)\n` +
+              `• Base Sepolia (84532)\n` +
+              `• Arbitrum Sepolia (421614)\n` +
+              `• OP Sepolia (11155420)\n\n` +
+              `Then try again.`
+          );
+          setIsGenerating(false);
+          return;
+        }
+
+        if (
+          userNetwork &&
+          !SUPPORTED_TESTNETS.includes(userNetwork) &&
+          !MAINNET_CHAINS.includes(userNetwork)
+        ) {
+          console.error("❌ User network not supported:", userNetwork);
+          alert(
+            `⚠️ Unsupported Network\n\n` +
+              `Your current network (${userNetwork}) is not supported.\n\n` +
+              `Please switch to one of these testnets:\n` +
+              `• Sepolia (11155111)\n` +
+              `• Base Sepolia (84532)\n` +
+              `• Arbitrum Sepolia (421614)\n` +
+              `• OP Sepolia (11155420)`
+          );
+          setIsGenerating(false);
+          return;
+        }
+      } // End of EVM-only validation block
+
       // STEP 2: Route to appropriate flow
-      if (userNetwork && agentNetwork && userNetwork !== agentNetwork) {
-        // 🌉 CROSS-CHAIN: Show intermediate modal first
+      // For Solana wallets, always use direct QR generation (no cross-chain)
+      if (isSolanaWallet && agentIsSolana) {
+        console.log(
+          "🌟 Solana-to-Solana detected → Direct Solana QR generation"
+        );
+
+        const result = await dynamicQRService.generateDynamicQR(
+          agent,
+          paymentAmount ||
+            agent?.interaction_fee_amount ||
+            agent?.interaction_fee ||
+            1
+        );
+
+        console.log("✅ Solana QR generated:", result);
+        setQrData(result.paymentUri);
+        setCurrentView("qr");
+      } else if (userNetwork && agentNetwork && userNetwork !== agentNetwork) {
+        // 🌉 CROSS-CHAIN (EVM only): Show intermediate modal first
         console.log("🌉 Cross-chain detected → Triggering intermediate modal");
         await handleCrossChainMode();
         return; // Exit here - modal will handle QR generation after confirmation
       } else {
-        // 📱 SAME-CHAIN: Direct QR generation
-        console.log("📱 Same-chain detected → Direct QR generation");
+        // 📱 SAME-CHAIN (EVM): Direct QR generation
+        console.log("📱 Same-chain EVM detected → Direct QR generation");
 
         const result = await dynamicQRService.generateDynamicQR(
           agent,
@@ -1788,8 +1928,8 @@ const CubePaymentEngine = ({
 
         console.log("✅ Same-chain QR generated:", result);
 
-        // Use the EIP-681 URI for QR display
-        setQrData(result.eip681URI);
+        // Use the payment URI for QR display
+        setQrData(result.paymentUri);
         setCurrentView("qr");
       }
     } catch (error) {
@@ -1827,6 +1967,108 @@ const CubePaymentEngine = ({
         `Supported Networks:\n${btcPaymentInfo.networks.join("\n")}\n\n` +
         `For now, please use "Crypto QR" for USDC payments. Bitcoin integration is in active development!`
     );
+  };
+
+  // Handle Revolut Bank QR Selection
+  const handleBankQRSelection = async () => {
+    console.log("🚨 handleBankQRSelection called!");
+    console.log("🚨 isInitializing value:", isInitializing);
+    console.log("🚨 Call stack:", new Error().stack);
+
+    // Prevent execution during initialization
+    if (isInitializing) {
+      console.log("⏳ Cube initializing, ignoring bank QR selection");
+      return;
+    }
+
+    console.log("🔲 Handling Revolut Bank QR payment...");
+    setIsGenerating(true);
+
+    try {
+      // 💰 Use dynamic payment amount from e-shop/on-ramp OR agent's fee OR default
+      const amount =
+        paymentAmount ||
+        agent?.interaction_fee_amount ||
+        agent?.interaction_fee ||
+        10.0;
+
+      console.log(
+        "💰 Creating Revolut Bank QR order for amount:",
+        amount,
+        "USD"
+      );
+      console.log("💰 Payment amount source:", {
+        fromPaymentContext: paymentAmount,
+        fromAgentFeeAmount: agent?.interaction_fee_amount,
+        fromAgentFee: agent?.interaction_fee,
+        finalAmount: amount,
+      });
+
+      // Create Revolut Bank QR order
+      const orderResult = await revolutBankService.createRevolutBankOrder({
+        agentId: agent?.id,
+        agentName: agent?.name,
+        amount: amount,
+        currency: "USD",
+        description: `Payment to ${agent?.name || "AgentSphere Agent"}`,
+      });
+
+      if (orderResult.success) {
+        console.log("✅ Revolut Bank QR order created:", orderResult.order);
+        setRevolutOrderData(orderResult.order);
+        setShowRevolutBankModal(true);
+        setRevolutPaymentStatus("processing");
+      } else {
+        throw new Error(orderResult.error);
+      }
+    } catch (error) {
+      console.error("❌ Error creating Revolut Bank QR order:", error);
+      alert(`Error creating Bank QR payment: ${error.message}`);
+      setRevolutPaymentStatus("failed");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Handle Revolut Virtual Card Selection
+  const handleVirtualCardSelection = async () => {
+    // Prevent execution during initialization
+    if (isInitializing) {
+      console.log("⏳ Cube initializing, ignoring virtual card selection");
+      return;
+    }
+
+    console.log("💳💳💳 VIRTUAL CARD SELECTION TRIGGERED!");
+    console.log("💳 Opening Virtual Card Manager...");
+    console.log("💳 showVirtualCardModal before:", showVirtualCardModal);
+
+    // 💰 Calculate dynamic payment amount
+    const amount =
+      paymentAmount ||
+      agent?.interaction_fee_amount ||
+      agent?.interaction_fee ||
+      10.0;
+
+    console.log("💰 Payment amount:", {
+      fromPaymentContext: paymentAmount,
+      fromAgentFeeAmount: agent?.interaction_fee_amount,
+      fromAgentFee: agent?.interaction_fee,
+      finalAmount: amount,
+    });
+
+    try {
+      // Set the agent ID for the Virtual Card component
+      setVirtualCardAgentId(agent?.id || "unknown_agent");
+
+      // Open the Virtual Card modal with new manager
+      setShowVirtualCardModal(true);
+      console.log("💳 showVirtualCardModal set to TRUE");
+      setRevolutPaymentStatus("processing");
+    } catch (error) {
+      console.error("❌ Error opening Virtual Card Manager:", error);
+      alert(`Error opening Virtual Card: ${error.message}`);
+      setRevolutPaymentStatus("failed");
+    }
   };
 
   // Intermediate Payment Modal Handlers
@@ -1870,6 +2112,110 @@ const CubePaymentEngine = ({
     console.log("❌ User cancelled transaction in intermediate modal");
     setShowIntermediateModal(false);
     setIntermediateTransactionData(null);
+  };
+
+  // Revolut Bank QR Modal Handlers
+  const handleRevolutBankQRClose = () => {
+    console.log("🔲 Closing Revolut Bank QR modal");
+    setShowRevolutBankModal(false);
+    setRevolutOrderData(null);
+    setRevolutPaymentStatus("idle");
+  };
+
+  const handleRevolutBankQRCancel = async () => {
+    console.log("❌ User cancelled Revolut Bank QR payment");
+
+    if (revolutOrderData?.orderId) {
+      try {
+        const cancelResult = await revolutBankService.cancelRevolutOrder(
+          revolutOrderData.orderId
+        );
+        if (cancelResult.success) {
+          console.log("✅ Revolut order cancelled successfully");
+        } else {
+          console.warn(
+            "⚠️ Failed to cancel Revolut order:",
+            cancelResult.error
+          );
+        }
+      } catch (error) {
+        console.error("❌ Error cancelling Revolut order:", error);
+      }
+    }
+
+    setRevolutPaymentStatus("cancelled");
+    handleRevolutBankQRClose();
+  };
+
+  const handleRevolutBankQRSuccess = (paymentData) => {
+    console.log("✅ Revolut Bank QR payment successful:", paymentData);
+    setRevolutPaymentStatus("completed");
+
+    alert(
+      `✅ Bank QR Payment Successful!\n\n` +
+        `💳 Payment ID: ${paymentData.paymentId}\n` +
+        `💰 Amount: ${paymentData.amount} ${paymentData.currency}\n` +
+        `🏪 Merchant: ${agent?.name}\n\n` +
+        `Payment has been processed successfully via Revolut Bank QR.`
+    );
+
+    // Call onPaymentComplete callback if provided
+    if (onPaymentComplete) {
+      onPaymentComplete({
+        method: "bank_qr",
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+        paymentId: paymentData.paymentId,
+        status: "completed",
+      });
+    }
+
+    handleRevolutBankQRClose();
+  };
+
+  // Revolut Virtual Card Modal Handlers
+  const handleVirtualCardClose = () => {
+    console.log("💳 Closing Revolut Virtual Card modal");
+    setShowVirtualCardModal(false);
+    setVirtualCardAgentId(null);
+    setRevolutPaymentStatus("idle");
+  };
+
+  const handleVirtualCardSuccess = (cardData) => {
+    console.log("✅ Virtual Card action successful:", cardData);
+
+    // If this was a payment, mark as completed
+    if (cardData.action === "payment") {
+      setRevolutPaymentStatus("completed");
+
+      alert(
+        `✅ Virtual Card Payment Successful!\n\n` +
+          `💳 Card: ****${cardData.cardNumber?.slice(-4) || "****"}\n` +
+          `💰 Amount: $${cardData.amount}\n` +
+          `🏪 Merchant: ${cardData.merchant || agent?.name}\n\n` +
+          `Payment has been processed successfully via Revolut Virtual Card.`
+      );
+
+      // Call onPaymentComplete callback if provided
+      if (onPaymentComplete) {
+        onPaymentComplete({
+          method: "virtual_card",
+          amount: cardData.amount,
+          currency: "USD",
+          cardId: cardData.cardId,
+          status: "completed",
+        });
+      }
+    }
+
+    // Keep modal open for other actions (card created, topped up, etc.)
+    // User can manually close it when done
+  };
+
+  const handleVirtualCardError = (error) => {
+    console.error("❌ Virtual Card error:", error);
+    setRevolutPaymentStatus("failed");
+    alert(`❌ Virtual Card Error: ${error.message || "Unknown error"}`);
   };
 
   // Handle Cross-Chain Mode - Shows intermediate modal for transaction review
@@ -2008,6 +2354,15 @@ const CubePaymentEngine = ({
 
   // Handle individual face clicks - for button-style interactions
   const handleFaceClick = async (method, faceIndex) => {
+    console.log(`🎯🎯🎯 handleFaceClick CALLED: ${method} (face ${faceIndex})`);
+    console.log(`   - isInitializing: ${isInitializing}`);
+
+    // Prevent auto-selection during initialization
+    if (isInitializing) {
+      console.log(`⏳ Cube initializing, ignoring face click: ${method}`);
+      return;
+    }
+
     console.log(`🎯 Face clicked directly: ${method} (face ${faceIndex})`);
 
     // Handle QR generation for crypto_qr method with cross-chain detection
@@ -2019,6 +2374,7 @@ const CubePaymentEngine = ({
       return;
     }
 
+    console.log(`➡️ Calling handleFaceSelected for: ${method}`);
     // For other methods, use existing handleFaceSelected logic
     await handleFaceSelected(method, { text: method });
   };
@@ -2031,6 +2387,12 @@ const CubePaymentEngine = ({
     setAgentPaymentConfig(null);
     setActualEnabledMethods(enabledMethods);
     setIsLoadingConfig(false);
+
+    // Reset Revolut state
+    setShowRevolutBankModal(false);
+    setRevolutOrderData(null);
+    setRevolutPaymentStatus("idle");
+
     if (onClose) onClose();
   };
 
@@ -2075,35 +2437,23 @@ const CubePaymentEngine = ({
             height: "100%",
           }}
         >
-          {/* Enhanced Dramatic Scene Lighting */}
-          <ambientLight intensity={0.3} color="#002200" />
+          {/* Soft ambient lighting for visibility without glare */}
+          <ambientLight intensity={0.6} color="#ffffff" />
           <directionalLight
             position={[10, 10, 5]}
-            intensity={0.8}
-            color="#88ff88"
-            castShadow
-          />
-          <pointLight
-            position={[0, 0, 10]}
-            intensity={1.2}
-            color="#00ff44"
-            distance={20}
-          />
-          <pointLight
-            position={[5, 0, 0]}
-            intensity={0.6}
-            color="#44ff88"
-            distance={15}
-          />
-          <pointLight
-            position={[-5, 0, 0]}
-            intensity={0.6}
-            color="#66ffaa"
-            distance={15}
+            intensity={0.4}
+            color="#ffffff"
           />
 
           {/* Render current view */}
-          {currentView === "cube" && !isLoadingConfig && (
+          {(() => {
+            console.log("🎲 CUBE RENDER CHECK:", {
+              currentView,
+              isLoadingConfig,
+              shouldRender: currentView === "cube" && !isLoadingConfig,
+            });
+            return currentView === "cube" && !isLoadingConfig;
+          })() && (
             <PaymentCube
               agent={agent}
               onFaceSelected={handleFaceSelected}
@@ -2111,6 +2461,7 @@ const CubePaymentEngine = ({
               actualEnabledMethods={actualEnabledMethods}
               cubeRef={cubeRef}
               isVisible={true}
+              isInitializing={isInitializing}
             />
           )}
 
@@ -2148,7 +2499,7 @@ const CubePaymentEngine = ({
         </Canvas>
 
         {/* CSS for animations */}
-        <style jsx>{`
+        <style>{`
           @keyframes float {
             0%,
             100% {
@@ -2190,6 +2541,86 @@ const CubePaymentEngine = ({
           transactionData={intermediateTransactionData}
           agentData={agent}
         />
+
+        {/* Revolut Bank QR Modal - For Bank QR Payments */}
+        <RevolutBankQRModal
+          isOpen={showRevolutBankModal}
+          onClose={handleRevolutBankQRClose}
+          onCancel={handleRevolutBankQRCancel}
+          onSuccess={handleRevolutBankQRSuccess}
+          orderData={revolutOrderData}
+          agentData={agent}
+        />
+
+        {/* Virtual Card Manager - Real Virtual Card Payment System */}
+        {(() => {
+          console.log(
+            "🔍 RENDER CHECK - showVirtualCardModal:",
+            showVirtualCardModal
+          );
+          return showVirtualCardModal;
+        })() && (
+          <VirtualCardManager
+            isOpen={showVirtualCardModal}
+            onClose={handleVirtualCardClose}
+            agentName={agent?.name || "AgentSphere Agent"}
+            agentFee={
+              paymentAmount ||
+              agent?.interaction_fee_amount ||
+              agent?.interaction_fee ||
+              10.0
+            }
+            agentToken="USDC"
+            agentId={agent?.id}
+            onPaymentComplete={(result) => {
+              console.log("✅ Virtual card payment completed:", result);
+              // Close virtual card modal
+              setShowVirtualCardModal(false);
+
+              // If closeAgentModal flag is set, close everything and return to AR viewer
+              if (result.closeAgentModal) {
+                console.log(
+                  "🔄 Closing cube payment engine and returning to AR viewer"
+                );
+                // Close the cube entirely
+                if (onClose) {
+                  onClose();
+                }
+              }
+
+              // Call parent's onPaymentComplete to close cube and return to AR viewer
+              if (onPaymentComplete) {
+                onPaymentComplete({
+                  method: "virtual-card",
+                  amount: result.amount,
+                  token: result.token,
+                  wallet: result.wallet,
+                  status: "completed",
+                  closeAgentModal: result.closeAgentModal, // Pass the flag up
+                });
+              }
+            }}
+            onSwitchToCubePay={() => {
+              console.log("🔄 Switching from virtual card to CubePay...");
+              // Close virtual card modal
+              setShowVirtualCardModal(false);
+              // Close the entire cube payment engine to return to AR viewer
+              // AR viewer will show the transaction result
+              if (onPaymentComplete) {
+                onPaymentComplete({
+                  method: "cubepay-terminal",
+                  switchToCubePay: true,
+                  amount:
+                    paymentAmount ||
+                    agent?.interaction_fee_amount ||
+                    agent?.interaction_fee ||
+                    10.0,
+                  status: "pending_cubepay",
+                });
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );
